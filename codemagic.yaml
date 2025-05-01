@@ -8,8 +8,6 @@ definitions:
       vars:
         VERSION_NAME: $VERSION_NAME
         VERSION_CODE: $VERSION_CODE
-        DEFAULT_VERSION_NAME: "1.0.0"
-        DEFAULT_VERSION_CODE: "100"
         KEY_STORE: $KEY_STORE
         CM_KEYSTORE_PASSWORD: $CM_KEYSTORE_PASSWORD
         CM_KEY_ALIAS: $CM_KEY_ALIAS
@@ -328,6 +326,8 @@ definitions:
           echo "🔢 VERSION_NAME: $VERSION_NAME"
           echo "🔢 VERSION_CODE: $VERSION_CODE"
            # Default values
+          VERSION_NAME="${VERSION_NAME:-1.0.0}"
+          VERSION_CODE="${VERSION_CODE:-100}"
           
 
           # Check if VERSION_NAME is empty or not set
@@ -371,7 +371,9 @@ definitions:
           flutter pub run rename setAppName --value "$APP_NAME"
           echo "🔢 VERSION_NAME: $VERSION_NAME"
           echo "🔢 VERSION_CODE: $VERSION_CODE"
-           # Default values
+            # Default values
+          VERSION_NAME="${VERSION_NAME:-1.0.0}"
+          VERSION_CODE="${VERSION_CODE:-100}"
         
           # Check if VERSION_NAME is empty or not set
           if [ -z "$VERSION_NAME" ]; then
@@ -565,6 +567,9 @@ definitions:
     - &Update_App_Version
       name: Inject Version Info into pubspec, build.gradle (Android) & Xcode project (iOS)
       script: |
+        # Default values
+        VERSION_NAME="${VERSION_NAME:-1.0.0}"
+        VERSION_CODE="${VERSION_CODE:-100}"
         # Check if VERSION_NAME is empty or not set
          if [ -z "$VERSION_NAME" ]; then
            VERSION_NAME=$DEFAULT_VERSION_NAME
@@ -653,12 +658,56 @@ definitions:
     - &build_apk
       name: Building Apk with Feature Flags
       script: |
+        echo "🔢 VERSION_NAME: $VERSION_NAME"
+        echo "🔢 VERSION_CODE: $VERSION_CODE"
+         # Default values
+        VERSION_NAME="${VERSION_NAME:-1.0.0}"
+        VERSION_CODE="${VERSION_CODE:-100}"
+        
+        # Check if VERSION_NAME is empty or not set
+        if [ -z "$VERSION_NAME" ]; then
+          VERSION_NAME=$DEFAULT_VERSION_NAME
+          echo "🔢 Setting DEFAULT_VERSION_NAME"
+        fi
+        
+        # Check if VERSION_CODE is empty or not set
+        if [ -z "$VERSION_CODE" ]; then
+          VERSION_CODE=$DEFAULT_VERSION_CODE
+          echo "🔢 Setting DEFAULT_VERSION_CODE"
+        fi
+        
+        echo "🔢 VERSION_NAME: $VERSION_NAME"
+        echo "🔢 VERSION_CODE: $VERSION_CODE"
+        
+        echo "🔧 Ensuring valid version in pubspec.yaml: $VERSION_NAME+$VERSION_CODE"
+        if grep -q "^version: " pubspec.yaml; then
+          sed -i.bak -E "s/^version: .*/version: $VERSION_NAME+$VERSION_CODE/" pubspec.yaml
+          else
+        echo "version: $VERSION_NAME+$VERSION_CODE" >> pubspec.yaml
+          fi
+  
+        flutter pub get
+        if [ $? -ne 0 ]; then
+        echo "❌ Failed to get Flutter dependencies"
+        exit 1
+        fi
+
         echo "✅ Building APK..."
         flutter build apk --release $flutter_build_flags > flutter_build.log
+        if [ $? -ne 0 ]; then
+        echo "❌ APK build failed"
+        cat flutter_build.log
+        exit 1
+        fi
         echo "✅ APK build completed."
 
         echo "✅ Building AppBundle..."
         flutter build appbundle --release $flutter_build_flags > flutter_build2.log
+        if [ $? -ne 0 ]; then
+        echo "❌ AppBundle build failed"
+        cat flutter_build2.log
+        exit 1
+        fi
         echo "✅ AppBundle build completed."
 
 workflows:
