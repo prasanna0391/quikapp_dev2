@@ -328,8 +328,44 @@ definitions:
     - &change_app_name
       name: Change app name
       script: |
-        flutter pub run rename setAppName --value "$APP_NAME"
-        flutter pub get
+        echo "🚀 Changing app name to: $APP_NAME"
+      
+          flutter pub run rename setAppName --value "$APP_NAME"
+          echo "🔢 VERSION_NAME: $VERSION_NAME"
+          echo "🔢 VERSION_CODE: $VERSION_CODE"
+           # Default values
+          DEFAULT_VERSION_NAME="1.0.0"
+          DEFAULT_VERSION_CODE="100"
+
+          # Check if VERSION_NAME is empty or not set
+          if [ -z "$VERSION_NAME" ]; then
+            VERSION_NAME=$DEFAULT_VERSION_NAME
+            echo "🔢 Setting DEFAULT_VERSION_NAME"
+          fi
+
+          # Check if VERSION_CODE is empty or not set
+          if [ -z "$VERSION_CODE" ]; then
+            VERSION_CODE=$DEFAULT_VERSION_CODE
+            echo "🔢 Setting DEFAULT_VERSION_CODE"
+          fi
+
+          echo "🔢 VERSION_NAME: $VERSION_NAME"
+          echo "🔢 VERSION_CODE: $VERSION_CODE"
+      
+          echo "🔧 Ensuring valid version in pubspec.yaml: $VERSION_NAME+$VERSION_CODE"
+          # Replace or add version line in pubspec.yaml
+          if grep -q "^version: " pubspec.yaml; then
+            sed -i.bak -E "s/^version: .*/version: $VERSION_NAME+$VERSION_CODE/" pubspec.yaml
+          else
+          echo "version: $VERSION_NAME+$VERSION_CODE" >> pubspec.yaml
+          fi
+      
+          flutter pub get
+      
+          echo "✅ App name changed and version set successfully"
+
+#        flutter pub run rename setAppName --value "$APP_NAME"
+#        flutter pub get
 
     - &update_android_package
       name: Update Android Package Name
@@ -586,10 +622,10 @@ workflows:
 #      - *pub_get
       - *debug_env
       - *update_package_names
-      - *set_default_version
+#      - *set_default_version
+      - *change_app_name
       - *Update_App_Version
       - *Update_SDK_Version
-      - *change_app_name
       - *get_json
       - *Inject_Firebase
       - *get_logo
@@ -612,16 +648,16 @@ workflows:
     scripts:
       #      - *pub_get
       - *debug_env
-      - *get_json
+      - *change_app_name
       - *Inject_Firebase_iOS_Push
       - *update_package_names
-      - *set_default_version
+#      - *set_default_version
       - *Update_App_Version
       - *get_logo
       - *set_launcher_icons
       - *get_splash
       - *Update_SDK_Version
-      - *change_app_name
+
       - *build_ipa
     artifacts:
       - *ios_app
@@ -629,4 +665,33 @@ workflows:
       - fcm_token.txt
     #        - *android_abb
     publishing: *email_release
+  ios-and-android-workflow:
+      name: ios and android workflow
+      max_build_duration: 30
+      instance_type: mac_mini_m1
+      environment:
+        flutter: stable
+      scripts:
+        #      - *pub_get
+        - *debug_env
+        - *change_app_name
+        - *Inject_Firebase_iOS_Push
+        - *Inject_Firebase
+        - *update_package_names
+        #      - *set_default_version
+        - *Update_App_Version
+        - *get_logo
+        - *set_launcher_icons
+        - *get_splash
+        - *Update_SDK_Version
+        - *build_apk
+        - *build_ipa
+      artifacts:
+        - *android_apk
+        - *android_abb
+        - *ios_app
+        - flutter_build.log
+        - fcm_token.txt
+      #        - *android_abb
+      publishing: *email_release
 
