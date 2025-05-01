@@ -6,6 +6,12 @@ definitions:
   environment:
     app_details:
       vars:
+        VERSION_NAME: $VERSION_NAME
+        VERSION_CODE: $VERSION_CODE
+        KEY_STORE: $KEY_STORE
+        CM_KEYSTORE_PASSWORD: $CM_KEYSTORE_PASSWORD
+        CM_KEY_ALIAS: $CM_KEY_ALIAS
+        CM_KEY_PASSWORD: $CM_KEY_PASSWORD
         APP_NAME: $APP_NAME
         ORG_NAME: $ORG_NAME
         IS_SPLASH: $IS_SPLASH
@@ -20,6 +26,10 @@ definitions:
         WEB_URL: $WEB_URL
         url: $WEB_URL
         firebase_config_android: $firebase_config_android
+        firebase_config_ios: $firebase_config_ios
+        APNS_KEY_ID: $APNS_KEY_ID
+        APNS_TEAM_ID: $APNS_TEAM_ID
+        APNS_AUTH_KEY_URL: $APNS_AUTH_KEY_URL
         PKG_NAME: $PKG_NAME
         EMAIL_ID: $EMAIL_ID
         PUSH_NOTIFY: $PUSH_NOTIFY
@@ -28,10 +38,49 @@ definitions:
         IS_MIC: $IS_MIC
         IS_NOTIFICATION: $IS_NOTIFICATION
         IS_CONTACT: $IS_CONTACT
-        IS_SMS: $IS_SMS
-        IS_PHONE: $IS_PHONE
-        IS_BLUETOOTH: $IS_BLUETOOTH
+        IS_BIOMETRIC: $IS_BIOMETRIC
+        IS_CALENDAR: $IS_CALENDAR
+        IS_STORAGE: "true" # Always true by default
         IS_PULLDOWN: $IS_PULLDOWN
+        IS_BOTTOMMENU: $IS_BOTTOMMENU
+        BOTTOMMENU_ITEMS: $BOTTOMMENU_ITEMS
+        BOTTOMMENU_BG_COLOR: $BOTTOMMENU_BG_COLOR
+        BOTTOMMENU_ICON_COLOR: $BOTTOMMENU_ICON_COLOR
+        BOTTOMMENU_TEXT_COLOR: $BOTTOMMENU_TEXT_COLOR
+        BOTTOMMENU_ACTIVE_TAB_COLOR: $BOTTOMMENU_ACTIVE_TAB_COLOR
+        BOTTOMMENU_ICON_POSITION: $BOTTOMMENU_ICON_POSITION
+        BOTTOMMENU_VISIBLE_ON: $BOTTOMMENU_VISIBLE_ON
+        IS_DEEPLINK: $IS_DEEPLINK
+        flutter_build_flags: >
+          --dart-define=WEB_URL="$WEB_URL"
+          --dart-define=PUSH_NOTIFY="$PUSH_NOTIFY"
+          --dart-define=PKG_NAME="$PKG_NAME"
+          --dart-define=IS_SPLASH="$IS_SPLASH"
+          --dart-define=SPLASH="$SPLASH"
+          --dart-define=SPLASH_BG="$SPLASH_BG"
+          --dart-define=SPLASH_ANIMATION="$SPLASH_ANIMATION"
+          --dart-define=SPLASH_BG_COLOR="$SPLASH_BG_COLOR"
+          --dart-define=SPLASH_TAGLINE="$SPLASH_TAGLINE"
+          --dart-define=SPLASH_TAGLINE_COLOR="$SPLASH_TAGLINE_COLOR"
+          --dart-define=SPLASH_DURATION="$SPLASH_DURATION"
+          --dart-define=IS_PULLDOWN="$IS_PULLDOWN"
+          --dart-define=IS_BOTTOMMENU="$IS_BOTTOMMENU"
+          --dart-define=BOTTOMMENU_ITEMS="$BOTTOMMENU_ITEMS"
+          --dart-define=BOTTOMMENU_BG_COLOR="$BOTTOMMENU_BG_COLOR"
+          --dart-define=BOTTOMMENU_ICON_COLOR="$BOTTOMMENU_ICON_COLOR"
+          --dart-define=BOTTOMMENU_TEXT_COLOR="$BOTTOMMENU_TEXT_COLOR"
+          --dart-define=BOTTOMMENU_ACTIVE_TAB_COLOR="$BOTTOMMENU_ACTIVE_TAB_COLOR"
+          --dart-define=BOTTOMMENU_ICON_POSITION="$BOTTOMMENU_ICON_POSITION"
+          --dart-define=BOTTOMMENU_VISIBLE_ON="$BOTTOMMENU_VISIBLE_ON"
+          --dart-define=IS_DEEPLINK="$IS_DEEPLINK"
+          --dart-define=IS_CAMERA="$IS_CAMERA"
+          --dart-define=IS_LOCATION="$IS_LOCATION"
+          --dart-define=IS_BIOMETRIC="$IS_BIOMETRIC"
+          --dart-define=IS_MIC="$IS_MIC"
+          --dart-define=IS_CONTACT="$IS_CONTACT"
+          --dart-define=IS_CALENDAR="$IS_CALENDAR"
+          --dart-define=IS_NOTIFICATION="$IS_NOTIFICATION"
+          --dart-define=IS_STORAGE="$IS_STORAGE"
 
   artifacts:
     #- &ipa_file build/ios/ipa/*.ipa
@@ -61,30 +110,70 @@ definitions:
     - &debug_env
       name: Debug Environment Variables
       script: |
+        echo "*********** App Name & Version ***********"
         echo "APP_NAME: $APP_NAME"
         echo "ORG_NAME: $ORG_NAME"
         echo "WEB_URL: $WEB_URL"
+        echo "VERSION_NAME: $VERSION_NAME"           
+        echo "VERSION_CODE: $VERSION_CODE" 
+        echo "PKG_NAME: $PKG_NAME"
+        
+        echo "*********** Android Keystore ***********"
+        echo "KEY_STORE: $KEY_STORE"
+        echo "CM_KEYSTORE_PASSWORD: $CM_KEYSTORE_PASSWORD"
+        echo "CM_KEY_ALIAS: $CM_KEY_ALIAS"
+        echo "CM_KEY_PASSWORD: $CM_KEY_PASSWORD"
+        
+        echo "*********** IOS Keystore ***********"
+        echo "APNS_KEY_ID: $APNS_KEY_ID"
+        echo "APNS_TEAM_ID: $APNS_TEAM_ID"
+        echo "APNS_AUTH_KEY_URL: $APNS_AUTH_KEY_URL"
+        
+        echo "*********** Firebase Android config file ***********"
+        echo "firebase_config_android: $firebase_config_android"
+        echo "\n Firebase IOS config file:\n"
+        echo "firebase_config_ios: $firebase_config_ios"
+        
+        echo "*********** Splash Configuration ***********"
         echo "IS_SPLASH: $IS_SPLASH"
         echo "SPLASH: $SPLASH"
-        ech0 "SPLASH_BG:$SPLASH_BG"
+        echo "SPLASH_BG:$SPLASH_BG"
         echo "SPLASH_BG_COLOR: $SPLASH_BG_COLOR"
         echo "SPLASH_TAGLINE: $SPLASH_TAGLINE"
         echo "SPLASH_TAGLINE_COLOR: $SPLASH_TAGLINE_COLOR"
         echo "SPLASH_ANIMATION: $SPLASH_ANIMATION"
         echo "SPLASH_DURATION: $SPLASH_DURATION"
-        echo "firebase_config_android: $firebase_config_android"
-        echo "PKG_NAME: $PKG_NAME"
-        echo "EMAIL_ID: $EMAIL_ID"
+        
+        echo "*********** Push Notification Configuration ***********"
         echo "PUSH_NOTIFY: $PUSH_NOTIFY"
+        
+        echo "*********** Bottom Navigation Configuration ***********"
+        echo "IS_BOTTOMMENU: $IS_BOTTOMMENU"
+        echo "BOTTOMMENU_ITEMS: $BOTTOMMENU_ITEMS"
+        echo "BOTTOMMENU_BG_COLOR: $BOTTOMMENU_BG_COLOR"  
+        echo "BOTTOMMENU_ICON_COLOR: $BOTTOMMENU_ICON_COLOR"
+        echo "BOTTOMMENU_TEXT_COLOR: $BOTTOMMENU_TEXT_COLOR"
+        echo "BOTTOMMENU_ACTIVE_TAB_COLOR: $BOTTOMMENU_ACTIVE_TAB_COLOR"
+        echo "BOTTOMMENU_ICON_POSITION: $BOTTOMMENU_ICON_POSITION"
+        echo "BOTTOMMENU_VISIBLE_ON: $BOTTOMMENU_VISIBLE_ON"
+        
+        echo "*********** Permissions ***********"
         echo "IS_CAMERA: $IS_CAMERA"
         echo "IS_LOCATION: $IS_LOCATION"
         echo "IS_MIC: $IS_MIC"
         echo "IS_NOTIFICATION: $IS_NOTIFICATION"
         echo "IS_CONTACT: $IS_CONTACT"
-        echo "IS_SMS: $IS_SMS"
-        echo "IS_PHONE: $IS_PHONE"
-        echo "IS_BLUETOOTH: $IS_BLUETOOTH"
+        echo "IS_BIOMETRIC: $IS_BIOMETRIC"
+        echo "IS_CALENDAR: $IS_CALENDAR"
+        
+        echo "*********** Publish Configuration ***********"
+        echo "EMAIL_ID: $EMAIL_ID"
+        
+        echo "*********** Pull Down to Refresh Configuration ***********"
         echo "IS_PULLDOWN: $IS_PULLDOWN"
+        
+        echo "*********** DEEPLINK Configuration ***********"
+        echo "IS_DEEPLINK: $IS_DEEPLINK"
 
 #    - &set_splash_icons
 #      name: Add splash screen to build
@@ -103,28 +192,68 @@ definitions:
           echo "⬇️ Downloading splash logo from: $SPLASH"
           wget -O assets/images/splash.png "$SPLASH"
           if [ $? -ne 0 ]; then
-          echo "❌ Error: Failed to download SPLASH logo"
-          exit 1
+            echo "⚠️ Certificate issue or download failed. Retrying with --no-check-certificate..."
+            wget --no-check-certificate -O assets/images/splash.png "$SPLASH"
+          fi
+        
+          if [ ! -f assets/images/splash.png ]; then
+            echo "❌ Error: Failed to download SPLASH logo"
+            exit 1
           fi
         
           # Download splash background (optional)
           if [ -n "$SPLASH_BG" ]; then
-          echo "⬇️ Downloading splash background from: $SPLASH_BG"
-          wget -O assets/images/splash_bg.png "$SPLASH_BG"
-          if [ $? -ne 0 ]; then
-          echo "❌ Error: Failed to download SPLASH background"
-          exit 1
-          fi
+            echo "⬇️ Downloading splash background from: $SPLASH_BG"
+            wget -O assets/images/splash_bg.png "$SPLASH_BG"
+            if [ $? -ne 0 ]; then
+              echo "⚠️ Certificate issue or download failed. Retrying with --no-check-certificate..."
+              wget --no-check-certificate -O assets/images/splash_bg.png "$SPLASH_BG"
+            fi
+        
+            if [ ! -f assets/images/splash_bg.png ]; then
+              echo "❌ Error: Failed to download SPLASH background"
+              exit 1
+            fi
           else
-          echo "ℹ️ No SPLASH_BG provided, skipping background download"
+            echo "ℹ️ No SPLASH_BG provided, skipping background download"
           fi
         
           flutter pub get
           echo "✅ Completed: Splash assets downloaded"
-          
-          else
+        else
           echo "⏭️ Skipping splash asset download (IS_SPLASH != true)"
-          fi
+        fi
+#        if [ "$IS_SPLASH" = "true" ]; then
+#          echo "🚀 Started: Downloading splash assets"
+#
+#          mkdir -p assets/images/
+#
+#          # Download splash logo
+#          echo "⬇️ Downloading splash logo from: $SPLASH"
+#          wget -O assets/images/splash.png "$SPLASH"
+#          if [ $? -ne 0 ]; then
+#          echo "❌ Error: Failed to download SPLASH logo"
+#          exit 1
+#          fi
+#
+#          # Download splash background (optional)
+#          if [ -n "$SPLASH_BG" ]; then
+#          echo "⬇️ Downloading splash background from: $SPLASH_BG"
+#          wget -O assets/images/splash_bg.png "$SPLASH_BG"
+#          if [ $? -ne 0 ]; then
+#          echo "❌ Error: Failed to download SPLASH background"
+#          exit 1
+#          fi
+#          else
+#          echo "ℹ️ No SPLASH_BG provided, skipping background download"
+#          fi
+#
+#          flutter pub get
+#          echo "✅ Completed: Splash assets downloaded"
+#
+#          else
+#          echo "⏭️ Skipping splash asset download (IS_SPLASH != true)"
+#          fi
 
 #    - &generate_splash_config
 #      name: Generate splash screen config
@@ -174,46 +303,46 @@ definitions:
     #            image: assets/images/splash.png
     #            icon_background_color: "$SPLASH_BG_COLOR"
     #        EOF
-    - &Inject_Firebase
-      name: Inject Firebase and buildscript block
-      script: |
-        if [ "$PUSH_NOTIFY" = "true" ]; then
-            echo "📦 Enabling Firebase integration..."
-
-            # Inject Firebase classpath only if not present
-            if ! grep -q "com.google.gms:google-services" android/build.gradle; then
-            echo "✅ Injecting Firebase classpath into android/build.gradle..."
-
-            if ! grep -q "buildscript {" android/build.gradle; then
-              # No buildscript block at all – add it to the top
-              sed -i '1s;^;buildscript {\n  repositories {\n    google()\n    mavenCentral()\n  }\n  dependencies {\n    classpath "com.google.gms:google-services:4.3.15"\n  }\n}\n\n;' android/build.gradle
-              echo "✅ Full buildscript block injected"
-            else
-              # buildscript exists, just insert classpath line
-              sed -i '/buildscript {/,/}/ s/dependencies {/dependencies {\n    classpath "com.google.gms:google-services:4.3.15"/' android/build.gradle
-              echo "✅ Firebase classpath inserted into existing buildscript"
-            fi
-          fi
-
-            if ! grep -q "com.google.gms:google-services" android/build.gradle; then
-              sed -i '/dependencies {/a\
-              classpath '\''com.google.gms:google-services:4.3.15'\''\
-              ' android/build.gradle
-              echo "✅ Firebase classpath added to android/build.gradle"
-            fi
-               else
-            echo "🚫 Firebase config skipped (PUSH_NOTIFY is not true)"
-          fi
-    - &get_json
-      name: Get JSON file
-      script: |
-       if [ "$PUSH_NOTIFY" = "true" ]; then
-          echo "📥 Downloading google-services.json..."
-          wget -O android/app/google-services.json "$firebase_config_android"
-          wget -O assets/google-services.json "$firebase_config_android"
-        else
-          echo "🚫 Firebase config skipped (PUSH_NOTIFY is not true)"
-        fi
+#    - &Inject_Firebase
+#      name: Inject Firebase and buildscript block
+#      script: |
+#        if [ "$PUSH_NOTIFY" = "true" ]; then
+#            echo "📦 Enabling Firebase integration..."
+#
+#            # Inject Firebase classpath only if not present
+#            if ! grep -q "com.google.gms:google-services" android/build.gradle; then
+#            echo "✅ Injecting Firebase classpath into android/build.gradle..."
+#
+#            if ! grep -q "buildscript {" android/build.gradle; then
+#              # No buildscript block at all – add it to the top
+#              sed -i '1s;^;buildscript {\n  repositories {\n    google()\n    mavenCentral()\n  }\n  dependencies {\n    classpath "com.google.gms:google-services:4.3.15"\n  }\n}\n\n;' android/build.gradle
+#              echo "✅ Full buildscript block injected"
+#            else
+#              # buildscript exists, just insert classpath line
+#              sed -i '/buildscript {/,/}/ s/dependencies {/dependencies {\n    classpath "com.google.gms:google-services:4.3.15"/' android/build.gradle
+#              echo "✅ Firebase classpath inserted into existing buildscript"
+#            fi
+#          fi
+#
+#            if ! grep -q "com.google.gms:google-services" android/build.gradle; then
+#              sed -i '/dependencies {/a\
+#              classpath '\''com.google.gms:google-services:4.3.15'\''\
+#              ' android/build.gradle
+#              echo "✅ Firebase classpath added to android/build.gradle"
+#            fi
+#               else
+#            echo "🚫 Firebase config skipped (PUSH_NOTIFY is not true)"
+#          fi
+#    - &get_json
+#      name: Get JSON file
+#      script: |
+#       if [ "$PUSH_NOTIFY" = "true" ]; then
+#          echo "📥 Downloading google-services.json..."
+#          wget -O android/app/google-services.json "$firebase_config_android"
+#          wget -O assets/google-services.json "$firebase_config_android"
+#        else
+#          echo "🚫 Firebase config skipped (PUSH_NOTIFY is not true)"
+#        fi
 
 #    - &read_json
 #          name: Read JSON file
@@ -370,15 +499,35 @@ definitions:
     - &get_logo
       name: Get logo image from logoUrl
       script: |
-        echo "🚀 Started: Downloading logo from $LOGO_URL"
-            mkdir -p assets/images/
-            wget -O assets/images/logo.png $LOGO_URL
-            if [ $? -ne 0 ]; then
-              echo "❌ Error: Failed to download logo"
-              exit 1
-            fi
-            flutter pub get
-            echo "✅ Completed: Logo downloaded"
+          echo "🚀 Started: Downloading logo from $LOGO_URL"
+          
+          mkdir -p assets/images/
+          
+          # Try downloading with certificate check first
+          wget -O assets/images/logo.png "$LOGO_URL"
+          if [ $? -ne 0 ]; then
+        echo "⚠️ Warning: Certificate verification failed. Retrying with --no-check-certificate..."
+          wget --no-check-certificate -O assets/images/logo.png "$LOGO_URL"
+          fi
+          
+          # Final check if file was successfully downloaded
+          if [ ! -f assets/images/logo.png ]; then
+        echo "❌ Error: Failed to download logo from $LOGO_URL"
+          exit 1
+          fi
+          
+          flutter pub get
+        echo "✅ Completed: Logo downloaded"        
+
+#echo "🚀 Started: Downloading logo from $LOGO_URL"
+#            mkdir -p assets/images/
+#            wget -O assets/images/logo.png $LOGO_URL
+#            if [ $? -ne 0 ]; then
+#              echo "❌ Error: Failed to download logo"
+#              exit 1
+#            fi
+#            flutter pub get
+#            echo "✅ Completed: Logo downloaded"
 #        mkdir -p assets/images/
 #        wget -O assets/images/logo.png $LOGO_URL
 #        flutter pub get
@@ -457,33 +606,254 @@ definitions:
 
         echo "✔ Package name updated to: $PACKAGE_NAME"
 
+    - &Inject_Firebase_iOS_Push
+      name: Firebase Push Notification Setup for iOS
+      script: |
+        if [ "$PUSH_NOTIFY" = "true" ]; then
+          echo "🔔 Enabling Firebase Push Notifications for iOS..."
+        
+          # 1. Download and apply Firebase config
+          mkdir -p firebase/ios
+          if [ -n "$firebase_config_ios" ]; then
+            wget -O firebase/ios/GoogleService-Info.plist "$firebase_config_ios"
+          fi
+        
+          if [ -f "firebase/ios/GoogleService-Info.plist" ]; then
+            cp firebase/ios/GoogleService-Info.plist ios/Runner/GoogleService-Info.plist
+            echo "✅ GoogleService-Info.plist copied."
+          else
+            echo "❌ Missing GoogleService-Info.plist. Cannot proceed with Firebase setup."
+            exit 1
+          fi
+        
+          # 2. Add Firebase SDK (via committed Package.resolved)
+          if [ -f "firebase/ios/Package.resolved" ]; then
+            mkdir -p ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+            cp firebase/ios/Package.resolved ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+            echo "📦 Firebase SDK resolved from committed Package.resolved."
+          else
+            echo "⚠️ Package.resolved not found. Firebase SDK must be added manually in Xcode."
+          fi
+        
+          # 3. Download APNs Auth Key if provided (Optional)
+          if [ -n "$APNS_AUTH_KEY_URL" ]; then
+            wget -O firebase/ios/AuthKey.p8 "$APNS_AUTH_KEY_URL"
+            echo "📥 Downloaded AuthKey.p8 for APNs"
+          fi
+        
+          # 4. Check APNs entitlements
+          if grep -q "aps-environment" ios/Runner/Runner.entitlements; then
+            echo "✅ APNs entitlements already enabled."
+          else
+            echo "⚠️ Warning: Missing APNs entitlement in Runner.entitlements."
+          fi
+        else
+          echo "🚫 PUSH_NOTIFY is false. Skipping Firebase push notification setup for iOS."
+          rm -f ios/Runner/GoogleService-Info.plist
+          rm -f ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+          echo "🧹 Cleaned up Firebase iOS config."
+        fi
 
+    - &get_json
+      name: Get JSON file
+      script: |
+        if [ "$PUSH_NOTIFY" = "true" ]; then
+           echo "📥 Downloading google-services.json..."
+           wget -O android/app/google-services.json "$firebase_config_android"
+           wget -O assets/google-services.json "$firebase_config_android"
+         else
+           echo "🚫 Firebase config skipped (PUSH_NOTIFY is not true)"
+         fi
+
+    - &Inject_Firebase
+      name: Inject Firebase and buildscript block
+      script: |
+        if [ "$PUSH_NOTIFY" = "true" ]; then
+          echo "📦 Enabling Firebase integration..."
+
+          # Check if Firebase classpath is already present
+          if ! grep -q 'com.google.gms:google-services' android/build.gradle; then
+            echo "✅ Firebase classpath not found, injecting..."
+
+            if ! grep -q 'buildscript {' android/build.gradle; then
+              # No buildscript block found – inject the entire block at the top
+              sed -i '1s;^;buildscript {\n  repositories {\n    google()\n    mavenCentral()\n  }\n  dependencies {\n    classpath "com.google.gms:google-services:4.3.15"\n  }\n}\n\n;' android/build.gradle
+              echo "✅ Full buildscript block injected"
+            else
+              # buildscript exists – insert the classpath into the dependencies
+              sed -i '/buildscript {/,/}/ s/dependencies {/dependencies {\n    classpath "com.google.gms:google-services:4.3.15"/' android/build.gradle
+              echo "✅ Firebase classpath inserted into existing buildscript"
+            fi
+          else
+            echo "✅ Firebase classpath already present, skipping injection"
+          fi
+        else
+          echo "🚫 Firebase config skipped (PUSH_NOTIFY is not true)"
+        fi
+
+    - &Update_SDK_Version
+      name: Updating SDK Version for Android & iOS (Conditional)
+      script: |
+        if [ "$PUSH_NOTIFY" = "true" ]; then
+          echo "🔧 Updating Android and iOS SDK versions..."
+        
+          # ───── Android SDK Versions ─────
+          echo "📱 Updating Android minSdkVersion and targetSdkVersion in build.gradle"
+          sed -i.bak 's/minSdkVersion\s*=.*$/minSdkVersion 21/' android/app/build.gradle
+          sed -i.bak 's/targetSdkVersion\s*=.*$/targetSdkVersion 34/' android/app/build.gradle
+          echo "✅ Android SDK versions updated"
+        
+          # ───── iOS Minimum Target Version ─────
+          echo "🍏 Updating iOS minimum deployment target in Podfile..."
+          PODFILE_PATH="ios/Podfile"
+        
+          if [ -f "$PODFILE_PATH" ]; then
+            sed -i.bak -E "s/platform :ios, '[0-9.]+'/platform :ios, '12.0'/" "$PODFILE_PATH"
+            echo "✅ iOS minimum deployment target updated to 12.0"
+          else
+            echo "⚠️ Podfile not found. Skipping iOS deployment target update."
+          fi
+        
+          # Optional: iOS project.pbxproj iOS Deployment Target
+          IOS_PROJECT_FILE="ios/Runner.xcodeproj/project.pbxproj"
+          if [ -f "$IOS_PROJECT_FILE" ]; then
+            sed -i'' -e "s/IPHONEOS_DEPLOYMENT_TARGET = .*;/IPHONEOS_DEPLOYMENT_TARGET = 12.0;/" "$IOS_PROJECT_FILE"
+            echo "✅ Xcode project iOS deployment target updated to 12.0"
+          fi
+        else
+          echo "🚫 SDK version update skipped (PUSH_NOTIFY is not true)"
+        fi
+
+    - &Update_App_Version
+      name: Inject Version Info into pubspec, build.gradle (Android) & Xcode project (iOS)
+      script: |
+        echo "🔄 Updating version to ${VERSION_NAME}+${VERSION_CODE}"
+        
+        # ───── pubspec.yaml ─────
+        sed -i'' -e "s/^version: .*/version: ${VERSION_NAME}+${VERSION_CODE}/" pubspec.yaml
+        echo "✅ Updated pubspec.yaml"
+        
+        # ───── Android build.gradle ─────
+        echo "🔧 Updating Android build.gradle..."
+        sed -i'' -e "s/versionCode.*/versionCode ${VERSION_CODE}/" android/app/build.gradle
+        sed -i'' -e "s/versionName \".*\"/versionName \"${VERSION_NAME}\"/" android/app/build.gradle
+        echo "✅ Android version updated: $VERSION_NAME ($VERSION_CODE)"
+        
+        # ───── iOS: project.pbxproj ─────
+        echo "🍏 Updating iOS version info in project.pbxproj..."
+        IOS_PROJECT_FILE="ios/Runner.xcodeproj/project.pbxproj"
+        
+        if [ -f "$IOS_PROJECT_FILE" ]; then
+          sed -i'' -e "s/MARKETING_VERSION = .*;/MARKETING_VERSION = ${VERSION_NAME};/" "$IOS_PROJECT_FILE"
+          sed -i'' -e "s/CURRENT_PROJECT_VERSION = .*;/CURRENT_PROJECT_VERSION = ${VERSION_CODE};/" "$IOS_PROJECT_FILE"
+          echo "✅ iOS version updated: $VERSION_NAME ($VERSION_CODE)"
+        else
+          echo "❌ iOS project file not found at $IOS_PROJECT_FILE"
+          exit 1
+        fi
+
+
+
+
+    - &update_package_names
+      name: Update Android & iOS Package Name / Bundle ID
+      script: |
+        echo "🔧 Updating Android and iOS package name (bundle ID)..."
+        
+        # Validate package/bundle ID format (Java-style, dot-separated)
+        if [[ ! "$PKG_NAME" =~ ^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)+$ ]]; then
+        echo "❌ ERROR: Invalid package/bundle identifier: $PKG_NAME"
+        exit 1
+        fi
+        
+        echo "✔ Package name / Bundle ID: $PKG_NAME"
+        
+               echo "────────────── ANDROID UPDATE ──────────────"
+               echo "📦 Updating Android package..."
+               flutter pub run rename setBundleId --value "$PKG_NAME"
+        
+               # Update AndroidManifest.xml
+               sed -i "s/package=\"[^\"]*\"/package=\"$PKG_NAME\"/g" android/app/src/main/AndroidManifest.xml
+               # For macOS: sed -i '' ...
+               sed -i "s/applicationId \"[^\"]*\"/applicationId \"$PKG_NAME\"/g" android/app/build.gradle
+        
+               echo "✅ Android package updated."
+        
+               echo "────────────── iOS UPDATE ──────────────"
+               echo "🍏 Updating iOS bundle identifier..."
+               IOS_PROJECT_PATH="ios/Runner.xcodeproj/project.pbxproj"
+        
+               if [ -f "$IOS_PROJECT_PATH" ]; then
+                 sed -i "s/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = $PKG_NAME;/g" "$IOS_PROJECT_PATH"
+                 echo "✅ iOS bundle identifier updated."
+               else
+                 echo "❌ iOS project file not found at $IOS_PROJECT_PATH"
+                 exit 1
+               fi         
+
+    - &build_ipa
+      name: Building iOS App with Feature Flags
+      script: |
+        echo "✅ Building iOS IPA..."
+        flutter build ipa --release $flutter_build_flags > flutter_build.log
+        echo "✅ IPA build completed."
+
+    - &build_apk
+      name: Building Apk with Feature Flags
+      script: |
+        echo "✅ Building APK..."
+        flutter build apk --release $flutter_build_flags > flutter_build.log
+        echo "✅ APK build completed."
+
+        echo "✅ Building AppBundle..."
+        flutter build appbundle --release $flutter_build_flags > flutter_build2.log
+        echo "✅ AppBundle build completed."
 
 workflows:
   android-workflow:
     name: Android Workflow
-    max_build_duration: 65
+    max_build_duration: 30
     instance_type: mac_mini_m1
     environment:
       flutter: stable
     scripts:
-      - *pub_get
+#      - *pub_get
       - *debug_env
-      - *update_android_package
+      - *get_json
+      - *Inject_Firebase
+      - *update_package_names
+      - *Update_App_Version
       - *get_logo
       - *set_launcher_icons
       - *get_splash
-#      - *generate_splash_config
-#      - *set_splash_icons
+      - *Update_SDK_Version
       - *change_app_name
-      - *Inject_Firebase
+      - *build_ipa
+    artifacts:
+      - *android_apk
+      - flutter_build.log
+      - fcm_token.txt
+    #        - *android_abb
+    publishing: *email_release
+  ios-workflow:
+    name: iOS Workflow
+    max_build_duration: 30
+    instance_type: mac_mini_m1
+    environment:
+      flutter: stable
+    scripts:
+      #      - *pub_get
+      - *debug_env
       - *get_json
-      # - *read_json
-      - *update_sdkver
-      - *build_app
-      # - *build_release_apk
-      # - *build_abb
-      # - *build_debug_apk
+      - *Inject_Firebase_iOS_Push
+      - *update_package_names
+      - *Update_App_Version
+      - *get_logo
+      - *set_launcher_icons
+      - *get_splash
+      - *Update_SDK_Version
+      - *change_app_name
+      - *build_apk
     artifacts:
       - *android_apk
       - flutter_build.log
@@ -492,7 +862,7 @@ workflows:
     publishing: *email_release
   android-release-workflow:
     name: Android release Workflow
-    max_build_duration: 65
+    max_build_duration: 30
     instance_type: mac_mini_m2
     environment:
       flutter: stable
@@ -505,7 +875,7 @@ workflows:
       - *get_splash
 #      - *set_splash_icons
       - *change_app_name
-      - *Inject_Firebase
+      - *Inject_Firebase_iOS_Push
       # - *build_release_apk
     # - *build_abb
 #     - *build_debug_apk
