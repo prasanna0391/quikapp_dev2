@@ -8,6 +8,8 @@ definitions:
       vars:
         VERSION_NAME: $VERSION_NAME
         VERSION_CODE: $VERSION_CODE
+        DEFAULT_VERSION_NAME: "1.0.0"
+        DEFAULT_VERSION_CODE: "100"
         KEY_STORE: $KEY_STORE
         CM_KEYSTORE_PASSWORD: $CM_KEYSTORE_PASSWORD
         CM_KEY_ALIAS: $CM_KEY_ALIAS
@@ -321,8 +323,44 @@ definitions:
     - &set_launcher_icons
       name: Generate Launcher Icons
       script: |
-        flutter pub run flutter_launcher_icons:main
-        flutter pub get
+        echo "🚀 Generating launcher icons"
+
+          echo "🔢 VERSION_NAME: $VERSION_NAME"
+          echo "🔢 VERSION_CODE: $VERSION_CODE"
+           # Default values
+          
+
+          # Check if VERSION_NAME is empty or not set
+          if [ -z "$VERSION_NAME" ]; then
+            VERSION_NAME=$DEFAULT_VERSION_NAME
+            echo "🔢 Setting DEFAULT_VERSION_NAME"
+          fi
+
+          # Check if VERSION_CODE is empty or not set
+          if [ -z "$VERSION_CODE" ]; then
+            VERSION_CODE=$DEFAULT_VERSION_CODE
+            echo "🔢 Setting DEFAULT_VERSION_CODE"
+          fi
+
+          echo "🔢 VERSION_NAME: $VERSION_NAME"
+          echo "🔢 VERSION_CODE: $VERSION_CODE"
+        
+          echo "🔧 Ensuring valid version in pubspec.yaml: $VERSION_NAME+$VERSION_CODE"
+          # Replace or add version line in pubspec.yaml
+          if grep -q "^version: " pubspec.yaml; then
+            sed -i.bak -E "s/^version: .*/version: $VERSION_NAME+$VERSION_CODE/" pubspec.yaml
+          else
+          echo "version: $VERSION_NAME+$VERSION_CODE" >> pubspec.yaml
+          fi
+
+           flutter pub get
+
+           # Use updated command (deprecates `:main`)
+           flutter pub run flutter_launcher_icons
+
+           echo "✅ Launcher icons generated successfully"
+#        flutter pub run flutter_launcher_icons:main
+#        flutter pub get
 
 
     - &change_app_name
@@ -334,9 +372,7 @@ definitions:
           echo "🔢 VERSION_NAME: $VERSION_NAME"
           echo "🔢 VERSION_CODE: $VERSION_CODE"
            # Default values
-          DEFAULT_VERSION_NAME="1.0.0"
-          DEFAULT_VERSION_CODE="100"
-
+        
           # Check if VERSION_NAME is empty or not set
           if [ -z "$VERSION_NAME" ]; then
             VERSION_NAME=$DEFAULT_VERSION_NAME
@@ -529,6 +565,20 @@ definitions:
     - &Update_App_Version
       name: Inject Version Info into pubspec, build.gradle (Android) & Xcode project (iOS)
       script: |
+        # Check if VERSION_NAME is empty or not set
+         if [ -z "$VERSION_NAME" ]; then
+           VERSION_NAME=$DEFAULT_VERSION_NAME
+           echo "🔢 Setting DEFAULT_VERSION_NAME"
+         fi
+        
+         # Check if VERSION_CODE is empty or not set
+         if [ -z "$VERSION_CODE" ]; then
+           VERSION_CODE=$DEFAULT_VERSION_CODE
+           echo "🔢 Setting DEFAULT_VERSION_CODE"
+         fi
+        
+         echo "🔢 VERSION_NAME: $VERSION_NAME"
+         echo "🔢 VERSION_CODE: $VERSION_CODE"
         echo "🔄 Updating version to ${VERSION_NAME}+${VERSION_CODE}"
         
         # ───── pubspec.yaml ─────
