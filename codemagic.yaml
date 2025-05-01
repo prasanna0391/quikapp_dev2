@@ -109,6 +109,29 @@ definitions:
       name: Get packages
       script: |
         flutter pub get
+    - &set_default_version
+      name: Set VERSION_NAME and VERSION_CODE with default values
+      script: |
+          # Default values
+          DEFAULT_VERSION_NAME="1.0.0"
+          DEFAULT_VERSION_CODE="100"
+
+          # Check if VERSION_NAME is empty or not set
+          if [ -z "$VERSION_NAME" ]; then
+            VERSION_NAME=$DEFAULT_VERSION_NAME
+          fi
+
+          # Check if VERSION_CODE is empty or not set
+          if [ -z "$VERSION_CODE" ]; then
+            VERSION_CODE=$DEFAULT_VERSION_CODE
+          fi
+
+          echo "🔢 VERSION_NAME: $VERSION_NAME"
+          echo "🔢 VERSION_CODE: $VERSION_CODE"
+
+          # Export for use in later steps
+          echo "export VERSION_NAME=$VERSION_NAME" >> $CM_ENV
+          echo "export VERSION_CODE=$VERSION_CODE" >> $CM_ENV
 
     - &debug_env
       name: Debug Environment Variables
@@ -563,6 +586,7 @@ workflows:
 #      - *pub_get
       - *debug_env
       - *update_package_names
+      - *set_default_version
       - *Update_App_Version
       - *Update_SDK_Version
       - *change_app_name
@@ -591,6 +615,7 @@ workflows:
       - *get_json
       - *Inject_Firebase_iOS_Push
       - *update_package_names
+      - *set_default_version
       - *Update_App_Version
       - *get_logo
       - *set_launcher_icons
