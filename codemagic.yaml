@@ -24,7 +24,6 @@ definitions:
         SPLASH_DURATION: $SPLASH_DURATION
         LOGO_URL: $LOGO_URL
         WEB_URL: $WEB_URL
-        url: $WEB_URL
         firebase_config_android: $firebase_config_android
         firebase_config_ios: $firebase_config_ios
         APNS_KEY_ID: $APNS_KEY_ID

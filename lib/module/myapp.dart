@@ -7,7 +7,14 @@ import '../main.dart';
 class MyApp extends StatefulWidget {
 
   final String webUrl;
-  const MyApp({super.key, required this.webUrl});
+  final bool isBottomMenu;
+  final bool isSplash;
+  final String splashLogo;
+  final String splashBg;
+  final int splashDuration;
+  final String splashAnimation;
+  final List<Map<String, dynamic>> bottomMenuItems;
+  const MyApp({super.key, required this.webUrl, required this.isBottomMenu, required this.isSplash, required this.splashLogo, required this.splashBg, required this.splashDuration, required this.splashAnimation, required this.bottomMenuItems});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -33,8 +40,8 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: showSplash
-          ? SplashScreen()
-          : MainHome(webUrl: widget.webUrl),
+          ? SplashScreen(splashLogo: widget.splashLogo, splashBg: widget.splashBg, splashAnimation: widget.splashAnimation,)
+          : MainHome(webUrl: widget.webUrl, isBottomMenu: widget.isBottomMenu, bottomMenuItems: widget.bottomMenuItems,),
     );
   }
 }

@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+
+  final String splashLogo;
+  final String splashBg;
+
+  final String splashAnimation;
+  const SplashScreen({super.key,  required this.splashLogo, required this.splashBg, required this.splashAnimation});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -56,7 +61,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   Widget _buildAnimatedLogo() {
     final image = Image.asset('assets/images/splash.png', width: 150, fit: BoxFit.fitWidth);
 
-    switch (splashAnimation.toLowerCase()) {
+    switch (widget.splashAnimation.toLowerCase()) {
       case 'fade':
         return FadeTransition(opacity: _fadeAnimation, child: image);
       case 'slide':
@@ -77,7 +82,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       backgroundColor: backgroundColor,
       body: Stack(
         children: [
-          splashBgUrl.isNotEmpty
+          widget.splashBg.isNotEmpty
               ? Positioned.fill(
             child: Image.asset(
               'assets/images/splash_bg.png',

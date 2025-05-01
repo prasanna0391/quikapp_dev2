@@ -7,12 +7,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quikapp_flutter_latest/main.dart' show bottomMenuItems, isBottomMenu, isSplashEnabled, splashAnimation, splashBgUrl, splashDuration, splashUrl, webUrl;
 import 'package:quikapp_flutter_latest/module/myapp.dart';
+
+
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp(webUrl: '',));
+    await tester.pumpWidget(MyApp(webUrl: webUrl, isBottomMenu: isBottomMenu, isSplash: isSplashEnabled, splashLogo: splashUrl, splashBg: splashBgUrl, splashDuration: splashDuration, splashAnimation: splashAnimation, bottomMenuItems: bottomMenuItems));
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);
