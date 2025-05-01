@@ -7,15 +7,36 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:quikapp_flutter_latest/main.dart' show bottomMenuItems, isBottomMenu, isSplashEnabled, splashAnimation, splashBgUrl, splashDuration, splashUrl, webUrl;
 import 'package:quikapp_flutter_latest/module/myapp.dart';
+
 
 
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+    // Define dummy test values for environment-based config
+    const testWebUrl = "https://example.com";
+    const testIsBottomMenu = true;
+    const testIsSplashEnabled = false;
+    const testSplashUrl = "";
+    const testSplashBgUrl = "";
+    const testSplashDuration = 3;
+    const testSplashAnimation = "zoom";
+    final testBottomMenuItems = [
+      {"icon": "home", "label": "Home", "url": "https://example.com/home"},
+    ];
+
     // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp(webUrl: webUrl, isBottomMenu: isBottomMenu, isSplash: isSplashEnabled, splashLogo: splashUrl, splashBg: splashBgUrl, splashDuration: splashDuration, splashAnimation: splashAnimation, bottomMenuItems: bottomMenuItems));
+    await tester.pumpWidget(MyApp(
+      webUrl: testWebUrl,
+      isBottomMenu: testIsBottomMenu,
+      isSplash: testIsSplashEnabled,
+      splashLogo: testSplashUrl,
+      splashBg: testSplashBgUrl,
+      splashDuration: testSplashDuration,
+      splashAnimation: testSplashAnimation,
+      bottomMenuItems: testBottomMenuItems,
+    ));
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

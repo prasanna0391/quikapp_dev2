@@ -14,7 +14,9 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../config/env_config.dart';
 import '../main.dart';
+import '../services/notification_service.dart';
 
 
 class MainHome extends StatefulWidget {

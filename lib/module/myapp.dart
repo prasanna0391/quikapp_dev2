@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../config/env_config.dart';
 import 'main_home.dart' show MainHome;
 import 'splash_screen.dart';
-import '../main.dart';
 
 class MyApp extends StatefulWidget {
 
