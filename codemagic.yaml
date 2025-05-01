@@ -88,7 +88,10 @@ definitions:
     #- &dsym $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
     # - &app $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
     #    - &android_abb build/**/outputs/**/*.aab
+#    - &android_apk build/**/outputs/**/*.apk
+    - &android_abb build/**/outputs/**/*.aab
     - &android_apk build/**/outputs/**/*.apk
+    - &ios_app build/ios/ipa/*.ipa
     #- &android_mapping_txt build/**/outputs/**/mapping.txt
     #3- &flutter_drive_log flutter_drive.log
 
@@ -506,13 +509,13 @@ definitions:
           # Try downloading with certificate check first
           wget -O assets/images/logo.png "$LOGO_URL"
           if [ $? -ne 0 ]; then
-        echo "⚠️ Warning: Certificate verification failed. Retrying with --no-check-certificate..."
+          echo "⚠️ Warning: Certificate verification failed. Retrying with --no-check-certificate..."
           wget --no-check-certificate -O assets/images/logo.png "$LOGO_URL"
           fi
           
           # Final check if file was successfully downloaded
           if [ ! -f assets/images/logo.png ]; then
-        echo "❌ Error: Failed to download logo from $LOGO_URL"
+          echo "❌ Error: Failed to download logo from $LOGO_URL"
           exit 1
           fi
           
@@ -819,16 +822,16 @@ workflows:
     scripts:
 #      - *pub_get
       - *debug_env
-      - *get_json
-      - *Inject_Firebase
       - *update_package_names
       - *Update_App_Version
+      - *Update_SDK_Version
+      - *change_app_name
+      - *get_json
+      - *Inject_Firebase
       - *get_logo
       - *set_launcher_icons
       - *get_splash
-      - *Update_SDK_Version
-      - *change_app_name
-      - *build_ipa
+      - *build_apk
     artifacts:
       - *android_apk
       - flutter_build.log
@@ -853,9 +856,9 @@ workflows:
       - *get_splash
       - *Update_SDK_Version
       - *change_app_name
-      - *build_apk
+      - *build_ipa
     artifacts:
-      - *android_apk
+      - *ios_app
       - flutter_build.log
       - fcm_token.txt
     #        - *android_abb
