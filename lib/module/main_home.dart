@@ -23,7 +23,13 @@ class MainHome extends StatefulWidget {
   final String webUrl;
   final bool isBottomMenu;
   final List<Map<String, dynamic>> bottomMenuItems;
-  const MainHome({super.key, required this.webUrl, required this.isBottomMenu, required this.bottomMenuItems});
+  final isDeeplink;
+  final backgroundColor;
+  final activeTabColor;
+  final textColor;
+  final iconColor;
+  final iconPosition;
+  const MainHome({super.key, required this.webUrl, required this.isBottomMenu, required this.bottomMenuItems, required this.isDeeplink, required this.backgroundColor, required this.activeTabColor, required this.textColor, required this.iconColor, required this.iconPosition});
 
   @override
   State<MainHome> createState() => _MainHomeState();
@@ -31,25 +37,25 @@ class MainHome extends StatefulWidget {
 
 class _MainHomeState extends State<MainHome> {
   final GlobalKey webViewKey = GlobalKey();
-  final bool pushNotify = bool.fromEnvironment('PUSH_NOTIFY', defaultValue: false);
-  // final bool isBottomMenu = bool.fromEnvironment('IS_BOTTOMMENU', defaultValue: false);
-  final bool isPullDown = bool.fromEnvironment('IS_PULLDOWN', defaultValue: false);
-  // final bool isCameraEnabled = bool.fromEnvironment('IS_CAMERA', defaultValue: false);
-  final bool isDeeplink = bool.fromEnvironment('IS_DEEPLINK', defaultValue: true);
-  // final isLocationEnabled = bool.fromEnvironment('IS_LOCATION');
-  // final isBiometricEnabled = bool.fromEnvironment('IS_BIOMETRIC');
-  // final isMicEnabled = bool.fromEnvironment('IS_MIC');
-  // final isContactEnabled = bool.fromEnvironment('IS_CONTACT');
-  // final isCalendarEnabled = bool.fromEnvironment('IS_CALENDAR');
-  // final isNotificationEnabled = bool.fromEnvironment('IS_NOTIFICATION');
-  // final isStorageEnabled = bool.fromEnvironment('IS_STORAGE');
-  // final String bottomMenuRaw = const String.fromEnvironment('BOTTOMMENU_ITEMS', defaultValue: '[]');
-  final backgroundColor = const String.fromEnvironment('BOTTOMMENU_BG_COLOR', defaultValue: '#FFFFFF');
-  final iconColor = const String.fromEnvironment('BOTTOMMENU_ICON_COLOR', defaultValue: '#000000');
-  final textColor = const String.fromEnvironment('BOTTOMMENU_TEXT_COLOR', defaultValue: '#000000');
-  final activeTabColor = const String.fromEnvironment('BOTTOMMENU_ACTIVE_TAB_COLOR', defaultValue: '#FF0000');
-  final iconPosition = const String.fromEnvironment('BOTTOMMENU_ICON_POSITION', defaultValue: 'above');
-  final visibleOn = const String.fromEnvironment('BOTTOMMENU_VISIBLE_ON', defaultValue: 'all');
+  // final bool pushNotify = bool.fromEnvironment('PUSH_NOTIFY', defaultValue: false);
+  // // final bool isBottomMenu = bool.fromEnvironment('IS_BOTTOMMENU', defaultValue: false);
+  // final bool isPullDown = bool.fromEnvironment('IS_PULLDOWN', defaultValue: false);
+  // // final bool isCameraEnabled = bool.fromEnvironment('IS_CAMERA', defaultValue: false);
+  // final bool isDeeplink = bool.fromEnvironment('IS_DEEPLINK', defaultValue: true);
+  // // final isLocationEnabled = bool.fromEnvironment('IS_LOCATION');
+  // // final isBiometricEnabled = bool.fromEnvironment('IS_BIOMETRIC');
+  // // final isMicEnabled = bool.fromEnvironment('IS_MIC');
+  // // final isContactEnabled = bool.fromEnvironment('IS_CONTACT');
+  // // final isCalendarEnabled = bool.fromEnvironment('IS_CALENDAR');
+  // // final isNotificationEnabled = bool.fromEnvironment('IS_NOTIFICATION');
+  // // final isStorageEnabled = bool.fromEnvironment('IS_STORAGE');
+  // // final String bottomMenuRaw = const String.fromEnvironment('BOTTOMMENU_ITEMS', defaultValue: '[]');
+  // final backgroundColor = const String.fromEnvironment('BOTTOMMENU_BG_COLOR', defaultValue: '#FFFFFF');
+  // final iconColor = const String.fromEnvironment('BOTTOMMENU_ICON_COLOR', defaultValue: '#000000');
+  // final textColor = const String.fromEnvironment('BOTTOMMENU_TEXT_COLOR', defaultValue: '#000000');
+  // final activeTabColor = const String.fromEnvironment('BOTTOMMENU_ACTIVE_TAB_COLOR', defaultValue: '#FF0000');
+  // final iconPosition = const String.fromEnvironment('BOTTOMMENU_ICON_POSITION', defaultValue: 'above');
+  // final visibleOn = const String.fromEnvironment('BOTTOMMENU_VISIBLE_ON', defaultValue: 'all');
   late bool isBottomMenu;
   // final Color backgroundColor = _parseHexColor(const String.fromEnvironment('SPLASH_BG_COLOR', defaultValue: "#ffffff"));
   final Color taglineColor = _parseHexColor(const String.fromEnvironment('SPLASH_TAGLINE_COLOR', defaultValue: "#000000"));
@@ -414,7 +420,7 @@ class _MainHomeState extends State<MainHome> {
                         shouldOverrideUrlLoading: (controller, navigationAction) async {
                           final uri = navigationAction.request.url;
                           if (uri != null && !uri.toString().contains(widget.webUrl)) {
-                            if (isDeeplink) {
+                            if (widget.isDeeplink) {
                               if (await canLaunchUrl(uri)) {
                                 await launchUrl(uri, mode: LaunchMode.externalApplication);
                                 return NavigationActionPolicy.CANCEL;
@@ -506,7 +512,7 @@ class _MainHomeState extends State<MainHome> {
           ),
           bottomNavigationBar: isBottomMenu
               ? BottomAppBar(
-            color: _parseHexColor(backgroundColor),
+            color: _parseHexColor(widget.backgroundColor),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: List.generate(bottomMenuItems.length, (index) {
@@ -516,8 +522,8 @@ class _MainHomeState extends State<MainHome> {
                 final icon = Icon(
                   _getIconByName(item['icon']),
                   color: isActive
-                      ? _parseHexColor(activeTabColor)
-                      : _parseHexColor(iconColor),
+                      ? _parseHexColor(widget.activeTabColor)
+                      : _parseHexColor(widget.iconColor),
                 );
 
                 final label = Text(
@@ -525,8 +531,8 @@ class _MainHomeState extends State<MainHome> {
                   style: TextStyle(
                     fontSize: 12,
                     color: isActive
-                        ? _parseHexColor(activeTabColor)
-                        : _parseHexColor(textColor),
+                        ? _parseHexColor(widget.activeTabColor)
+                        : _parseHexColor(widget.textColor),
                   ),
                 );
 
@@ -543,7 +549,7 @@ class _MainHomeState extends State<MainHome> {
                   },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                    child: iconPosition == 'beside'
+                    child: widget.iconPosition == 'beside'
                         ? Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [icon, const SizedBox(width: 6), label],

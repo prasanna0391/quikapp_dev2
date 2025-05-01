@@ -6,9 +6,11 @@ class SplashScreen extends StatefulWidget {
 
   final String splashLogo;
   final String splashBg;
+  final String spbgColor;
+  final String taglineColor;
 
   final String splashAnimation;
-  const SplashScreen({super.key,  required this.splashLogo, required this.splashBg, required this.splashAnimation});
+  const SplashScreen({super.key,  required this.splashLogo, required this.splashBg, required this.splashAnimation, required this.spbgColor, required this.taglineColor});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -27,8 +29,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   // final String splashBgUrl = const String.fromEnvironment('SPLASH_BG');
   // final String splashTagline = const String.fromEnvironment('SPLASH_TAGLINE');
   // final String splashAnimation = const String.fromEnvironment('SPLASH_ANIMATION', defaultValue: 'zoom');
-  final Color backgroundColor = _parseHexColor(const String.fromEnvironment('SPLASH_BG_COLOR', defaultValue: "#ffffff"));
-  final Color taglineColor = _parseHexColor(const String.fromEnvironment('SPLASH_TAGLINE_COLOR', defaultValue: "#000000"));
+  // final Color backgroundColor = _parseHexColor(const String.fromEnvironment('SPLASH_BG_COLOR', defaultValue: "#ffffff"));
+  // final Color taglineColor = _parseHexColor(const String.fromEnvironment('SPLASH_TAGLINE_COLOR', defaultValue: "#000000"));
 
   static Color _parseHexColor(String hexColor) {
     hexColor = hexColor.replaceFirst('#', '');
@@ -80,7 +82,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: _parseHexColor(widget.spbgColor),
       body: Stack(
         children: [
           widget.splashBg.isNotEmpty
@@ -102,7 +104,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w500,
-                  color: taglineColor,
+                  color: _parseHexColor(widget.taglineColor),
                 ),
                 textAlign: TextAlign.center,
               ),

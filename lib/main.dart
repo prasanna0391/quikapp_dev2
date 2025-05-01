@@ -27,29 +27,52 @@ void main() async {
     return;
   }
     debugPrint("""
-🛠 Runtime Config:
-- pushNotify: $pushNotify
-- webUrl: $webUrl
-- splashDuration: $splashDuration
-- isSplashEnabled: $isSplashEnabled
-- splashTagline: $splashTagline
-- Permissions:
-  - Camera: $isCameraEnabled
-  - Location: $isLocationEnabled
-  - Mic: $isMicEnabled
-  - Notification: $isNotificationEnabled
-  - Contact: $isContactEnabled
-""");
+      🛠 Runtime Config:
+      - pushNotify: $pushNotify
+      - webUrl: $webUrl
+      - isSplash: $isSplashEnabled,
+      - splashLogo: $splashUrl,
+      - splashBg: $splashBgUrl,
+      - splashDuration: $splashDuration,
+      - splashAnimation: $splashAnimation,
+      - taglineColor: $splashTaglineColor,
+      - spbgColor: $splashBgColor,
+      - isBottomMenu: $isBottomMenu,
+      - bottomMenuItems: ${parseBottomMenuItems(bottomMenuRaw)},
+      - isDeeplink: $isDeepLink,
+      - backgroundColor: $bottomMenuBgColor,
+      - activeTabColor: $bottomMenuActiveTabColor,
+      - textColor: $bottomMenuTextColor,
+      - iconColor: $bottomMenuIconColor,
+      - iconPosition: $bottomMenuIconPosition,
+      - Permissions:
+        - Camera: $isCameraEnabled
+        - Location: $isLocationEnabled
+        - Mic: $isMicEnabled
+        - Notification: $isNotificationEnabled
+        - Contact: $isContactEnabled
+      """);
 
   runApp(MyApp(
     webUrl: webUrl,
-    isBottomMenu: isBottomMenu,
+
     isSplash: isSplashEnabled,
     splashLogo: splashUrl,
     splashBg: splashBgUrl,
     splashDuration: splashDuration,
     splashAnimation: splashAnimation,
+    taglineColor: splashTaglineColor,
+    spbgColor: splashBgColor,
+    isBottomMenu: isBottomMenu,
     bottomMenuItems: parseBottomMenuItems(bottomMenuRaw),
+    isDeeplink: isDeepLink,
+    backgroundColor: bottomMenuBgColor,
+    activeTabColor: bottomMenuActiveTabColor,
+    textColor: bottomMenuTextColor,
+    iconColor: bottomMenuIconColor,
+    iconPosition: bottomMenuIconPosition,
+
+
   ));
 }
 
