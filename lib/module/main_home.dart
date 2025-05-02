@@ -29,7 +29,8 @@ class MainHome extends StatefulWidget {
   final textColor;
   final iconColor;
   final iconPosition;
-  const MainHome({super.key, required this.webUrl, required this.isBottomMenu, required this.bottomMenuItems, required this.isDeeplink, required this.backgroundColor, required this.activeTabColor, required this.textColor, required this.iconColor, required this.iconPosition});
+  final taglineColor;
+  const MainHome({super.key, required this.webUrl, required this.isBottomMenu, required this.bottomMenuItems, required this.isDeeplink, required this.backgroundColor, required this.activeTabColor, required this.textColor, required this.iconColor, required this.iconPosition, required this.taglineColor});
 
   @override
   State<MainHome> createState() => _MainHomeState();
@@ -37,28 +38,10 @@ class MainHome extends StatefulWidget {
 
 class _MainHomeState extends State<MainHome> {
   final GlobalKey webViewKey = GlobalKey();
-  // final bool pushNotify = bool.fromEnvironment('PUSH_NOTIFY', defaultValue: false);
-  // // final bool isBottomMenu = bool.fromEnvironment('IS_BOTTOMMENU', defaultValue: false);
-  // final bool isPullDown = bool.fromEnvironment('IS_PULLDOWN', defaultValue: false);
-  // // final bool isCameraEnabled = bool.fromEnvironment('IS_CAMERA', defaultValue: false);
-  // final bool isDeeplink = bool.fromEnvironment('IS_DEEPLINK', defaultValue: true);
-  // // final isLocationEnabled = bool.fromEnvironment('IS_LOCATION');
-  // // final isBiometricEnabled = bool.fromEnvironment('IS_BIOMETRIC');
-  // // final isMicEnabled = bool.fromEnvironment('IS_MIC');
-  // // final isContactEnabled = bool.fromEnvironment('IS_CONTACT');
-  // // final isCalendarEnabled = bool.fromEnvironment('IS_CALENDAR');
-  // // final isNotificationEnabled = bool.fromEnvironment('IS_NOTIFICATION');
-  // // final isStorageEnabled = bool.fromEnvironment('IS_STORAGE');
-  // // final String bottomMenuRaw = const String.fromEnvironment('BOTTOMMENU_ITEMS', defaultValue: '[]');
-  // final backgroundColor = const String.fromEnvironment('BOTTOMMENU_BG_COLOR', defaultValue: '#FFFFFF');
-  // final iconColor = const String.fromEnvironment('BOTTOMMENU_ICON_COLOR', defaultValue: '#000000');
-  // final textColor = const String.fromEnvironment('BOTTOMMENU_TEXT_COLOR', defaultValue: '#000000');
-  // final activeTabColor = const String.fromEnvironment('BOTTOMMENU_ACTIVE_TAB_COLOR', defaultValue: '#FF0000');
-  // final iconPosition = const String.fromEnvironment('BOTTOMMENU_ICON_POSITION', defaultValue: 'above');
-  // final visibleOn = const String.fromEnvironment('BOTTOMMENU_VISIBLE_ON', defaultValue: 'all');
+
   late bool isBottomMenu;
-  // final Color backgroundColor = _parseHexColor(const String.fromEnvironment('SPLASH_BG_COLOR', defaultValue: "#ffffff"));
-  final Color taglineColor = _parseHexColor(const String.fromEnvironment('SPLASH_TAGLINE_COLOR', defaultValue: "#000000"));
+
+  // final Color taglineColor = _parseHexColor(const String.fromEnvironment('SPLASH_TAGLINE_COLOR', defaultValue: "#000000"));
   int _currentIndex = 0;
 
   InAppWebViewController? webViewController;
@@ -142,7 +125,7 @@ class _MainHomeState extends State<MainHome> {
         [TargetPlatform.android, TargetPlatform.iOS].contains(defaultTargetPlatform) &&
         isPullDown) {
       pullToRefreshController = PullToRefreshController(
-          settings: PullToRefreshSettings(color: taglineColor),
+          settings: PullToRefreshSettings(color:  _parseHexColor(widget.taglineColor)),
           onRefresh: () async {
             try {
               if (defaultTargetPlatform == TargetPlatform.android) {

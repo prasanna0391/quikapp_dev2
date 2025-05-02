@@ -7,9 +7,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:quikapp_flutter_latest/config/env_config.dart';
-import 'package:quikapp_flutter_latest/module/myapp.dart';
-import 'package:quikapp_flutter_latest/utils/menu_parser.dart';
+import 'package:quickappproj/config/env_config.dart';
+import 'package:quickappproj/module/myapp.dart';
+import 'package:quickappproj/utils/menu_parser.dart';
+
 
 
 

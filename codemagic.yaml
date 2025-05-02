@@ -153,7 +153,8 @@ definitions:
         
         echo "*********** Firebase Android config file ***********"
         echo "firebase_config_android: $firebase_config_android"
-        echo "\n Firebase IOS config file:\n"
+        
+        echo "*********** Firebase IOS config file ***********"
         echo "firebase_config_ios: $firebase_config_ios"
         
         echo "*********** Splash Configuration ***********"
@@ -291,6 +292,44 @@ definitions:
          
               
 
+    - &change_proj_name
+      name: Change Project Name
+      script: |
+        echo "App Name: $APP_NAME"
+        # 2️⃣ Sanitize: lowercase, remove special characters, replace spaces with underscores
+          SANITIZED_NAME=$(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9 ' | tr ' ' '_')
+        
+        # 3️⃣ Extract old name from pubspec.yaml
+        OLD_NAME_LINE=$(grep '^name: ' pubspec.yaml)
+        OLD_NAME=$(echo "$OLD_NAME_LINE" | cut -d ' ' -f2)
+        
+        echo "🔁 Renaming project from '$OLD_NAME' to '$SANITIZED_NAME'..."
+        
+        # Update pubspec.yaml
+        sed -i '' "s/^name: .*/name: $SANITIZED_NAME/" pubspec.yaml
+        
+        # Update Dart imports
+          echo "🔄 Updating Dart package imports..."
+          grep -rl "package:$OLD_NAME" lib/ | xargs sed -i '' "s/package:$OLD_NAME/package:$SANITIZED_NAME/g"
+          
+         
+          
+          # iOS: Update CFBundleName in Info.plist
+          echo "🛠️ Updating iOS CFBundleName..."
+          plutil -replace CFBundleName -string "$APP_NAME" ios/Runner/Info.plist
+          
+          # Optional: Rename folder (if not on CI/CD)
+          # cd ..
+          # mv "$OLD_NAME" "$SANITIZED_NAME"
+          # cd "$SANITIZED_NAME"
+          
+          # Clean and get packages
+          flutter clean
+          flutter pub get
+          
+          echo "✅ Project renamed to '$SANITIZED_NAME'"
+          
+          echo "🚀 iOS CFBundleName set to '$APP_NAME'"
 
     - &get_logo
       name: Get logo image from logoUrl
@@ -852,7 +891,7 @@ workflows:
     environment:
       flutter: stable
     scripts:
-#      - *pub_get
+      - *change_proj_name
       - *debug_env
       - *update_package_names
 #      - *set_default_version
@@ -883,6 +922,7 @@ workflows:
     environment:
       flutter: stable
     scripts:
+      - *change_proj_name
       - *debug_env
       - *change_app_name
       - *Inject_Firebase_iOS_Push

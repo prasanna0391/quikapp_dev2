@@ -49,7 +49,7 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       home: showSplash
           ? SplashScreen(splashLogo: widget.splashLogo, splashBg: widget.splashBg, splashAnimation: widget.splashAnimation, spbgColor: widget.spbgColor, taglineColor: widget.taglineColor,)
-          : MainHome(webUrl: widget.webUrl, isBottomMenu: widget.isBottomMenu, bottomMenuItems: widget.bottomMenuItems, isDeeplink: widget.isDeeplink, backgroundColor: widget.backgroundColor, activeTabColor: widget.activeTabColor, textColor: widget.textColor, iconColor: widget.iconColor, iconPosition: widget.iconPosition,),
+          : MainHome(webUrl: widget.webUrl, isBottomMenu: widget.isBottomMenu, bottomMenuItems: widget.bottomMenuItems, isDeeplink: widget.isDeeplink, backgroundColor: widget.backgroundColor, activeTabColor: widget.activeTabColor, textColor: widget.textColor, iconColor: widget.iconColor, iconPosition: widget.iconPosition, taglineColor: widget.taglineColor,),
     );
   }
 }

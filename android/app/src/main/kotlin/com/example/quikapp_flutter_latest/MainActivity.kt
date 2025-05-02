@@ -1,4 +1,4 @@
-package com.example.quikapp_flutter_latest
+package com.example.quickappproj
 
 import io.flutter.embedding.android.FlutterActivity
 
