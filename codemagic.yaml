@@ -298,21 +298,45 @@ definitions:
         echo "🚀 Started: Downloading logo from $LOGO_URL"
 
         mkdir -p assets/images/
-  
-        # Try downloading with certificate check first
-        wget -O assets/images/logo.png "$LOGO_URL"
+
+        # Try downloading with SSL certificate check first (silent test)
+        wget --spider --quiet "$LOGO_URL"
         if [ $? -ne 0 ]; then
-        echo "⚠️ Certificate issue detected, retrying with --no-check-certificate"
-        wget --no-check-certificate -O assets/images/logo.png "$LOGO_URL"
+          echo "⚠️ SSL verification failed. Retrying with --no-check-certificate..."
+          WGET_OPTS="--no-check-certificate"
+        else
+          WGET_OPTS=""
         fi
-  
+
+        # Attempt actual download
+        wget $WGET_OPTS -O assets/images/logo.png "$LOGO_URL"
+
+        # Check if the file was successfully downloaded
         if [ ! -f assets/images/logo.png ]; then
-        echo "❌ Error: Failed to download logo from $LOGO_URL"
-        exit 1
+          echo "❌ Error: Failed to download logo from $LOGO_URL"
+          exit 1
         fi
-  
+
         flutter pub get
         echo "✅ Completed: Logo downloaded"
+#        echo "🚀 Started: Downloading logo from $LOGO_URL"
+#
+#        mkdir -p assets/images/
+#
+#        # Try downloading with certificate check first
+#        wget -O assets/images/logo.png "$LOGO_URL"
+#        if [ $? -ne 0 ]; then
+#        echo "⚠️ Certificate issue detected, retrying with --no-check-certificate"
+#        wget --no-check-certificate -O assets/images/logo.png "$LOGO_URL"
+#        fi
+#
+#        if [ ! -f assets/images/logo.png ]; then
+#        echo "❌ Error: Failed to download logo from $LOGO_URL"
+#        exit 1
+#        fi
+#
+#        flutter pub get
+#        echo "✅ Completed: Logo downloaded"
 
     - &set_launcher_icons
       name: Generate Launcher Icons
@@ -488,18 +512,42 @@ definitions:
     - &get_json
       name: Get JSON file
       script: |
+       
         if [ "$PUSH_NOTIFY" = "true" ]; then
-          echo "📥 Downloading google-services.json..."
-        
-          # Ensure target directories exist
-          mkdir -p android/app
-          mkdir -p assets
-        
-          wget -O android/app/google-services.json "$firebase_config_android"
-          wget -O assets/google-services.json "$firebase_config_android"
+        echo "📥 Downloading google-services.json..."
+      
+        # Ensure target directories exist
+        mkdir -p android/app
+        mkdir -p assets
+      
+        # Try downloading with SSL verification first
+        wget --spider --quiet "$firebase_config_android"
+        if [ $? -ne 0 ]; then
+        echo "⚠️ SSL verification failed. Retrying with --no-check-certificate..."
+        WGET_OPTS="--no-check-certificate"
         else
-          echo "🚫 Firebase config skipped (PUSH_NOTIFY is not true)"
+        WGET_OPTS=""
         fi
+      
+        # Download the file(s) using determined option
+        wget $WGET_OPTS -O android/app/google-services.json "$firebase_config_android"
+        wget $WGET_OPTS -O assets/google-services.json "$firebase_config_android"
+        else
+        echo "🚫 Firebase config skipped (PUSH_NOTIFY is not true)"
+        fi
+
+#         if [ "$PUSH_NOTIFY" = "true" ]; then
+#          echo "📥 Downloading google-services.json..."
+#
+#          # Ensure target directories exist
+#          mkdir -p android/app
+#          mkdir -p assets
+#
+#          wget -O android/app/google-services.json "$firebase_config_android"
+#          wget -O assets/google-services.json "$firebase_config_android"
+#        else
+#          echo "🚫 Firebase config skipped (PUSH_NOTIFY is not true)"
+#        fi
 
     - &Inject_Firebase
       name: Inject Firebase and buildscript block
@@ -813,12 +861,12 @@ workflows:
       - *Update_SDK_Version
       - *get_json
       - *Inject_Firebase
-      - *Configure_Firebase_for_iOS
+#      - *Configure_Firebase_for_iOS
       - *get_logo
       - *set_launcher_icons
       - *get_splash
       - *build_apk
-      - *build_ipa
+#      - *build_ipa
     artifacts:
       - *android_apk
       - *android_abb
@@ -827,6 +875,7 @@ workflows:
       - fcm_token.txt
     #        - *android_abb
     publishing: *email_release
+
   ios-workflow:
     name: iOS Workflow
     max_build_duration: 30
@@ -834,25 +883,40 @@ workflows:
     environment:
       flutter: stable
     scripts:
-      #      - *pub_get
       - *debug_env
       - *change_app_name
       - *Inject_Firebase_iOS_Push
       - *update_package_names
-#      - *set_default_version
       - *Update_App_Version
       - *get_logo
       - *set_launcher_icons
       - *get_splash
       - *Update_SDK_Version
 
+      # Download signing files from secure URLs
+      - name: Download signing files
+        script: |
+          mkdir -p signing
+          wget -O signing/ios_certificate.p12 "$CERTIFICATE_URL"
+          wget -O signing/ios_profile.mobileprovision "$PROFILE_URL"
+
       - *build_ipa
+
     artifacts:
       - *ios_app
       - flutter_build.log
       - flutter_build2.log
       - fcm_token.txt
-    #        - *android_abb
+
+    code_signing:
+      ios_signing:
+        certificates:
+          - certificate_path: signing/ios_certificate.p12
+            certificate_password: $CERTIFICATE_PASSWORD
+        provisioning_profiles:
+          - bundle_identifier: $PKG_NAME
+            path: signing/ios_profile.mobileprovision
+
     publishing: *email_release
   ios-and-android-workflow:
       name: ios and android workflow
