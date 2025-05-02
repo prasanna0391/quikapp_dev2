@@ -7,7 +7,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quikapp_flutter_latest/config/env_config.dart';
 import 'package:quikapp_flutter_latest/module/myapp.dart';
+import 'package:quikapp_flutter_latest/utils/menu_parser.dart';
 
 
 
@@ -28,14 +30,23 @@ void main() {
 
     // Build our app and trigger a frame.
     await tester.pumpWidget(MyApp(
-      webUrl: testWebUrl,
-      isBottomMenu: testIsBottomMenu,
-      isSplash: testIsSplashEnabled,
-      splashLogo: testSplashUrl,
-      splashBg: testSplashBgUrl,
-      splashDuration: testSplashDuration,
-      splashAnimation: testSplashAnimation,
-      bottomMenuItems: testBottomMenuItems,
+      webUrl: webUrl,
+
+      isSplash: isSplashEnabled,
+      splashLogo: splashUrl,
+      splashBg: splashBgUrl,
+      splashDuration: splashDuration,
+      splashAnimation: splashAnimation,
+      taglineColor: splashTaglineColor,
+      spbgColor: splashBgColor,
+      isBottomMenu: isBottomMenu,
+      bottomMenuItems: parseBottomMenuItems(bottomMenuRaw),
+      isDeeplink: isDeepLink,
+      backgroundColor: bottomMenuBgColor,
+      activeTabColor: bottomMenuActiveTabColor,
+      textColor: bottomMenuTextColor,
+      iconColor: bottomMenuIconColor,
+      iconPosition: bottomMenuIconPosition,
     ));
 
     // Verify that our counter starts at 0.
