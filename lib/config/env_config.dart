@@ -27,7 +27,7 @@ const String webUrl = String.fromEnvironment('WEB_URL');
 const String emailId = String.fromEnvironment('EMAIL_ID');
 
 // Splash screen
-const bool isSplashEnabled = bool.fromEnvironment('IS_SPLASH');
+const bool isSplashEnabled = bool.fromEnvironment('IS_SPLASH', defaultValue: false);
 const String splashBgUrl = String.fromEnvironment('SPLASH_BG');
 const String splashUrl = String.fromEnvironment('SPLASH');
 const String splashTagline = String.fromEnvironment('SPLASH_TAGLINE');
@@ -37,28 +37,28 @@ const int splashDuration = int.fromEnvironment('SPLASH_DURATION');
 const String splashBgColor = String.fromEnvironment('SPLASH_BG_COLOR');
 
 // Pull down
-const bool isPullDown = bool.fromEnvironment('IS_PULLDOWN');
+const bool isPullDown = bool.fromEnvironment('IS_PULLDOWN', defaultValue: false);
 
 // Logo
 const String logoUrl = String.fromEnvironment('LOGO_URL');
 
 // Deep linking
-const bool isDeepLink = bool.fromEnvironment('IS_DEEPLINK');
+const bool isDeepLink = bool.fromEnvironment('IS_DEEPLINK', defaultValue: false);
 
 // Permissions
-const bool isCameraEnabled = bool.fromEnvironment('IS_CAMERA');
-const bool isLocationEnabled = bool.fromEnvironment('IS_LOCATION');
-const bool isMicEnabled = bool.fromEnvironment('IS_MIC');
-const bool isNotificationEnabled = bool.fromEnvironment('IS_NOTIFICATION');
-const bool isContactEnabled = bool.fromEnvironment('IS_CONTACT');
-const bool isBiometricEnabled = bool.fromEnvironment('IS_BIOMETRIC');
-const bool isCalendarEnabled = bool.fromEnvironment('IS_CALENDAR');
+const bool isCameraEnabled = bool.fromEnvironment('IS_CAMERA', defaultValue: false);
+const bool isLocationEnabled = bool.fromEnvironment('IS_LOCATION', defaultValue: false);
+const bool isMicEnabled = bool.fromEnvironment('IS_MIC', defaultValue: false);
+const bool isNotificationEnabled = bool.fromEnvironment('IS_NOTIFICATION', defaultValue: false);
+const bool isContactEnabled = bool.fromEnvironment('IS_CONTACT', defaultValue: false);
+const bool isBiometricEnabled = bool.fromEnvironment('IS_BIOMETRIC', defaultValue: false);
+const bool isCalendarEnabled = bool.fromEnvironment('IS_CALENDAR', defaultValue: false);
 
 // Push notification
-const bool pushNotify = bool.fromEnvironment('PUSH_NOTIFY');
+const bool pushNotify = bool.fromEnvironment('PUSH_NOTIFY', defaultValue: false);
 
 // Bottom menu
-const bool isBottomMenu = bool.fromEnvironment('IS_BOTTOMMENU');
+const bool isBottomMenu = bool.fromEnvironment('IS_BOTTOMMENU', defaultValue: false);
 const String bottomMenuRaw = String.fromEnvironment('BOTTOMMENU_ITEMS');
 final List<Map<String, dynamic>> bottomMenuItems =
 (jsonDecode(bottomMenuRaw) as List)
@@ -69,6 +69,6 @@ const String bottomMenuBgColor = String.fromEnvironment('BOTTOMMENU_BG_COLOR');
 const String bottomMenuIconColor = String.fromEnvironment('BOTTOMMENU_ICON_COLOR');
 const String bottomMenuTextColor = String.fromEnvironment('BOTTOMMENU_TEXT_COLOR');
 const String bottomMenuActiveTabColor = String.fromEnvironment('BOTTOMMENU_ACTIVE_TAB_COLOR');
-const String bottomMenuIconPosition = String.fromEnvironment('BOTTOMMENU_ICON_POSITION');
+const String bottomMenuIconPosition = String.fromEnvironment('BOTTOMMENU_ICON_POSITION', defaultValue: 'above');
 const String bottomMenuVisibleOn = String.fromEnvironment('BOTTOMMENU_VISIBLE_ON');
 
