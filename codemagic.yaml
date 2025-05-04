@@ -196,7 +196,7 @@ definitions:
           --download \
           --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
           --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-          --private-key private_key.p8 \
+          --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
           --team-id "$APNS_TEAM_ID"; then
             echo "✅ Code signing setup complete."
         else
