@@ -908,14 +908,7 @@ definitions:
         fi
         echo "✅ APK build completed."
 
-#        echo "✅ Building AppBundle..."
-#        flutter build appbundle --release $flutter_build_flags > flutter_build2.log
-#        if [ $? -ne 0 ]; then
-#        echo "❌ AppBundle build failed"
-#        cat flutter_build2.log
-#        exit 1
-#        fi
-#        echo "✅ AppBundle build completed."
+
 
 workflows:
   android-workflow:
@@ -957,8 +950,7 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
-      groups:
-          - fetch-signing-files
+
     scripts:
       - *change_proj_name
       - *debug_env
@@ -972,14 +964,6 @@ workflows:
       - *Update_SDK_Version
       - *Validate_variables
       - *autosigncode
-
-#      # Download signing files from secure URLs
-#      - name: Download signing files
-#        script: |
-#          mkdir -p signing
-#          wget -O signing/ios_certificate.p12 "$CERTIFICATE_URL"
-#          wget -O signing/ios_profile.mobileprovision "$PROFILE_URL"
-
       - *build_ipa
 
     artifacts:
@@ -987,16 +971,6 @@ workflows:
       - flutter_build.log
       - flutter_build2.log
       - fcm_token.txt
-
-#    code_signing:
-#      ios_signing:
-#        certificates:
-#          - certificate_path: signing/ios_certificate.p12
-#            certificate_password: $CERTIFICATE_PASSWORD
-#        provisioning_profiles:
-#          - bundle_identifier: $PKG_NAME
-#            path: signing/ios_profile.mobileprovision
-
     publishing: *email_release
   ios-and-android-workflow:
       name: ios and android workflow
