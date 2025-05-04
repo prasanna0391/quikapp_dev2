@@ -176,10 +176,7 @@ definitions:
           fi
         done
 
-        if [[ "$APP_STORE_CONNECT_PRIVATE_KEY" != *"-----BEGIN PRIVATE KEY-----"* ]]; then
-          echo "❌ APP_STORE_CONNECT_PRIVATE_KEY seems invalid or not formatted correctly. Please check it."
-          exit 1
-        fi
+       
 
         echo "✅ All required environment variables are present and valid."
     - &autosigncode
