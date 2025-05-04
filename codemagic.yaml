@@ -958,8 +958,7 @@ workflows:
       xcode: latest
       cocoapods: default
       groups:
-          - firebase_credentials
-          - app_store_credentials
+          - fetch-signing-files
     scripts:
       - *change_proj_name
       - *debug_env
