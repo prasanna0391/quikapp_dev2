@@ -158,25 +158,51 @@ definitions:
         
         echo "*********** DEEPLINK Configuration ***********"
         echo "IS_DEEPLINK: $IS_DEEPLINK"
+    - &Validate_variables
+      name: ✅ Validate required environment variables
+      script: |
+        REQUIRED_VARS=(
+          PKG_NAME
+          APNS_TEAM_ID
+          APP_STORE_CONNECT_PRIVATE_KEY
+          APP_STORE_CONNECT_ISSUER_ID
+          APP_STORE_CONNECT_KEY_IDENTIFIER
+        )
 
+        for VAR in "${REQUIRED_VARS[@]}"; do
+          if [ -z "${!VAR}" ]; then
+            echo "❌ Environment variable $VAR is missing. Please set it in Codemagic or your credentials group."
+            exit 1
+          fi
+        done
+
+        if [[ "$APP_STORE_CONNECT_PRIVATE_KEY" != *"-----BEGIN PRIVATE KEY-----"* ]]; then
+          echo "❌ APP_STORE_CONNECT_PRIVATE_KEY seems invalid or not formatted correctly. Please check it."
+          exit 1
+        fi
+
+        echo "✅ All required environment variables are present and valid."
     - &autosigncode
       name: 🔐 Automatic code signing via App Store Connect
       script: |
         echo "🗕 Starting automatic code signing..."
-            if app-store-connect fetch-signing-files \
-            --type IOS_APP_ADHOC \
-            --bundle-id "$PKG_NAME" \
-            --create \
-            --download \
-            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
-            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
-            --team-id "$APNS_TEAM_ID"; then
-              echo "✅ Code signing setup complete."
-            else
-              echo "❌ Failed to perform automatic code signing. Please check your credentials or App Store Connect access."
-              exit 1
-            fi
+
+        echo "$APP_STORE_CONNECT_PRIVATE_KEY" | sed 's/\\n/\n/g' > private_key.p8
+
+        if app-store-connect fetch-signing-files \
+          --type IOS_APP_ADHOC \
+          --bundle-id "$PKG_NAME" \
+          --create \
+          --download \
+          --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+          --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+          --private-key private_key.p8 \
+          --team-id "$APNS_TEAM_ID"; then
+            echo "✅ Code signing setup complete."
+        else
+            echo "❌ Failed to perform automatic code signing. Please check your credentials or App Store Connect access."
+            exit 1
+        fi
 
 
     - &get_splash
@@ -917,16 +943,7 @@ workflows:
       - *set_launcher_icons
       - *get_splash
       - *Update_SDK_Version
-      - name: ✅ Validate required environment variables
-        script: |
-              REQUIRED_VARS=(BUNDLE_ID TEAM_ID KEY_ID APP_STORE_CONNECT_PRIVATE_KEY APP_STORE_CONNECT_ISSUER_ID APP_STORE_CONNECT_KEY_IDENTIFIER)
-              for VAR in "${REQUIRED_VARS[@]}"; do
-                if [ -z "${!VAR}" ]; then
-                  echo "❌ Environment variable $VAR is missing. Please set it in the app_store_credentials group."
-                  exit 1
-                fi
-              done
-              echo "✅ All required environment variables are present."
+      - *Validate_variables
       - *autosigncode
 
 #      # Download signing files from secure URLs
