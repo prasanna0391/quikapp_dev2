@@ -185,6 +185,11 @@ definitions:
         echo "🗕 Starting automatic code signing..."
 
         echo "$APP_STORE_CONNECT_PRIVATE_KEY" | base64 --decode > private_key.p8
+        # Optional: Verify PEM format
+        if ! grep -q "-----BEGIN PRIVATE KEY-----" private_key.p8; then
+        echo "❌ Decoded private_key.p8 is not a valid PEM file. Check base64 input."
+        exit 1
+        fi
 
         if app-store-connect fetch-signing-files \
           --type IOS_APP_ADHOC \
