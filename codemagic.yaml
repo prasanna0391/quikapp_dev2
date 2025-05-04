@@ -184,15 +184,20 @@ definitions:
       script: |
         echo "🗕 Starting automatic code signing..."
 
-        # Step 1: Decode base64 key and normalize line endings
-          echo "$APP_STORE_CONNECT_PRIVATE_KEY" | tr -d '\r' | base64 --decode > private_key.p8
-          cat private_key.p8 | tr -d '\r' > private_key_unix.p8 && mv private_key_unix.p8 private_key.p8
+        # Step 1: Decode and sanitize base64 PEM key
+          echo "$APP_STORE_CONNECT_PRIVATE_KEY" \
+          | tr -d '\r' \
+          | base64 --decode \
+          | awk '{ sub(/\r$/, ""); print }' > private_key.p8
+        
+        # Step 2: Strip any non-ASCII characters (invisible BOM, etc.)
+          LC_ALL=C tr -cd '\11\12\15\40-\176' < private_key.p8 > clean_key.p8
+          mv clean_key.p8 private_key.p8
           
-          # Step 2: Show top of key (for debugging)
+          # Step 3: Verify PEM header
           echo "📄 Top of decoded private_key.p8:"
           head -n 5 private_key.p8
           
-          # Step 3: Validate PEM format
           if ! grep -q "BEGIN PRIVATE KEY" private_key.p8; then
           echo "❌ Decoded private_key.p8 is not in valid PEM format!"
           exit 1
@@ -210,12 +215,12 @@ definitions:
           --download \
           --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
           --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-          --private-key "private_key.p8" \
+          --private-key private_key.p8 \
           --team-id "$APNS_TEAM_ID"
           
           STATUS=$?
           
-          # Step 5: Handle result
+          # Step 5: Result handling
           if [ $STATUS -eq 0 ]; then
           echo "✅ Code signing setup complete."
           else
