@@ -1,6 +1,6 @@
 definitions:
-  # mac_mini_m1: &mac_mini_m1
-  #  instance_type: mac_mini_m1
+  # mac_mini_m2: &mac_mini_m2
+  #  instance_type: mac_mini_m2
   # max_build_duration: 60
 
   environment:
@@ -921,7 +921,7 @@ workflows:
   android-workflow:
     name: Android Workflow
     max_build_duration: 30
-    instance_type: mac_mini_m1
+    instance_type: mac_mini_m2
     environment:
       flutter: stable
     scripts:
@@ -952,7 +952,7 @@ workflows:
   ios-workflow:
     name: iOS Workflow
     max_build_duration: 30
-    instance_type: mac_mini_m1
+    instance_type: mac_mini_m2
     environment:
       flutter: stable
       xcode: latest
@@ -1002,7 +1002,7 @@ workflows:
   ios-and-android-workflow:
       name: ios and android workflow
       max_build_duration: 30
-      instance_type: mac_mini_m1
+      instance_type: mac_mini_m2
       environment:
         flutter: stable
       scripts:
