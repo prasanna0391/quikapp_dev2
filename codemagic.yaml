@@ -187,7 +187,7 @@ definitions:
       script: |
         echo "🗕 Starting automatic code signing..."
 
-        echo "$APP_STORE_CONNECT_PRIVATE_KEY" | sed 's/\\n/\n/g' > private_key.p8
+        echo "$APP_STORE_CONNECT_PRIVATE_KEY" | base64 --decode > private_key.p8
 
         if app-store-connect fetch-signing-files \
           --type IOS_APP_ADHOC \
