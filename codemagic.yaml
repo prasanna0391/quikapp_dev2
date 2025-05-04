@@ -185,28 +185,30 @@ definitions:
         echo "🗕 Starting automatic code signing..."
 
         # Step 1: Decode and sanitize base64 PEM key
+          echo "🔐 Decoding base64 private key..."
           echo "$APP_STORE_CONNECT_PRIVATE_KEY" \
           | tr -d '\r' \
           | base64 --decode \
           | awk '{ sub(/\r$/, ""); print }' > private_key.p8
         
         # Step 2: Strip any non-ASCII characters (invisible BOM, etc.)
+          echo "🧼 Cleaning private key for non-ASCII characters..."
           LC_ALL=C tr -cd '\11\12\15\40-\176' < private_key.p8 > clean_key.p8
           mv clean_key.p8 private_key.p8
           
-          # Step 3: Verify PEM header
-          echo "📄 Top of decoded private_key.p8:"
+        # Step 3: Verify PEM header
+          echo "📄 Preview of decoded private_key.p8:"
           head -n 5 private_key.p8
           
           if ! grep -q "BEGIN PRIVATE KEY" private_key.p8; then
           echo "❌ Decoded private_key.p8 is not in valid PEM format!"
           exit 1
           else
-          echo "✅ Decoded private_key.p8 is a valid PEM format!"
+          echo "✅ private_key.p8 is in valid PEM format."
           fi
           
-          # Step 4: Fetch signing files from App Store Connect
-          echo "🚀 Attempting to fetch signing files..."
+        # Step 4: Fetch signing files from App Store Connect
+          echo "🚀 Fetching signing files from App Store Connect..."
           
           app-store-connect fetch-signing-files \
           --type IOS_APP_ADHOC \
@@ -220,14 +222,14 @@ definitions:
           
           STATUS=$?
           
-          # Step 5: Result handling
+        # Step 5: Result handling
           if [ $STATUS -eq 0 ]; then
-          echo "✅ Code signing setup complete."
+            echo "✅ Code signing setup complete!"
           else
-          echo "❌ Code signing failed (exit code $STATUS). See logs above for details."
-          echo "🔍 Contents of private_key.p8 for debugging:"
-          cat private_key.p8
-          exit 1
+            echo "❌ Code signing failed with exit code $STATUS"
+            echo "🔍 Dumping private_key.p8 for debugging:"
+            cat private_key.p8
+            exit 1
           fi
 
 
