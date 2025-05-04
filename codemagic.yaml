@@ -183,27 +183,29 @@ definitions:
       name: 🔐 Automatic code signing via App Store Connect
       script: |
         echo "🗕 Starting automatic code signing..."
-
+  
         echo "$APP_STORE_CONNECT_PRIVATE_KEY" | base64 --decode > private_key.p8
+        
         # Optional: Verify PEM format
-        if ! grep -q "-----BEGIN PRIVATE KEY-----" private_key.p8; then
+        if ! grep -q -- "-----BEGIN PRIVATE KEY-----" private_key.p8; then
         echo "❌ Decoded private_key.p8 is not a valid PEM file. Check base64 input."
+        head -n 5 private_key.p8  # Debug output
         exit 1
         fi
-
+        
         if app-store-connect fetch-signing-files \
-          --type IOS_APP_ADHOC \
-          --bundle-id "$PKG_NAME" \
-          --create \
-          --download \
-          --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
-          --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-          --private-key private_key.p8 \
-          --team-id "$APNS_TEAM_ID"; then
-            echo "✅ Code signing setup complete."
+        --type IOS_APP_ADHOC \
+        --bundle-id "$PKG_NAME" \
+        --create \
+        --download \
+        --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+        --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+        --private-key private_key.p8 \
+        --team-id "$APNS_TEAM_ID"; then
+        echo "✅ Code signing setup complete."
         else
-            echo "❌ Failed to perform automatic code signing. Please check your credentials or App Store Connect access."
-            exit 1
+        echo "❌ Failed to perform automatic code signing. Please check your credentials or App Store Connect access."
+        exit 1
         fi
 
 
