@@ -295,14 +295,15 @@ definitions:
     - &Update_Target_Version
       name: 🔧 Set iOS deployment target
       script: |
+          echo "🔧 Ensuring iOS deployment target is set to 13.0..."
           PODFILE_PATH="ios/Podfile"
-
+          
           if grep -q "platform :ios" "$PODFILE_PATH"; then
-          sed -i '' "s/platform :ios, .*/platform :ios, '13.0'/" "$PODFILE_PATH"
-          echo "✅ Updated existing iOS deployment target to 13.0"
+            sed -i '' "s/platform :ios, .*/platform :ios, '13.0'/" "$PODFILE_PATH"
+            echo "✅ Updated existing iOS deployment target to 13.0"
           else
-          echo "platform :ios, '13.0'" | cat - "$PODFILE_PATH" > temp && mv temp "$PODFILE_PATH"
-          echo "✅ Added iOS deployment target 13.0 to Podfile"
+            echo "platform :ios, '13.0'" | cat - "$PODFILE_PATH" > temp && mv temp "$PODFILE_PATH"
+            echo "✅ Added iOS deployment target 13.0 to Podfile"
           fi
     - &build_ipa
       name: Building iOS App with Feature Flags
@@ -1112,9 +1113,9 @@ workflows:
       - *get_splash
       - *Update_SDK_Version
       - *install_CocoaPods
-      - *Update_Target_Version
       - *Validate_variables
       - *manual_code_sign
+      - *Update_Target_Version
 #      - *autosigncode
       - *build_ipa
 
