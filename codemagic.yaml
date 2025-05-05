@@ -743,49 +743,46 @@ definitions:
       name: Firebase Push Notification Setup for iOS
       script: |
         if [ "$PUSH_NOTIFY" = "true" ]; then
-          echo "🔔 Enabling Firebase Push Notifications for iOS..."
-        
-          # 1. Download and apply Firebase config
-          mkdir -p firebase/ios
-          if [ -n "$firebase_config_ios" ]; then
-            wget -O firebase/ios/GoogleService-Info.plist "$firebase_config_ios"
-          fi
-        
-          if [ -f "firebase/ios/GoogleService-Info.plist" ]; then
-            cp firebase/ios/GoogleService-Info.plist ios/Runner/GoogleService-Info.plist
-            echo "✅ GoogleService-Info.plist copied."
+            echo "🔔 Enabling Firebase Push Notifications for iOS..."
+
+            mkdir -p firebase/ios
+            if [ -n "$firebase_config_ios" ]; then
+              wget -O firebase/ios/GoogleService-Info.plist "$firebase_config_ios"
+            fi
+
+            if [ -f "firebase/ios/GoogleService-Info.plist" ]; then
+              cp firebase/ios/GoogleService-Info.plist ios/Runner/GoogleService-Info.plist
+              echo "✅ GoogleService-Info.plist copied."
+            else
+              echo "❌ Missing GoogleService-Info.plist. Cannot proceed with Firebase setup."
+              exit 1
+            fi
+
+            if [ -f "firebase/ios/Package.resolved" ]; then
+              mkdir -p ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+              cp firebase/ios/Package.resolved ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+              echo "📦 Firebase SDK resolved from committed Package.resolved."
+            else
+              echo "⚠️ Package.resolved not found. Firebase SDK must be added manually in Xcode."
+            fi
+
+            if [ -n "$APNS_AUTH_KEY_URL" ]; then
+              wget -O firebase/ios/AuthKey.p8 "$APNS_AUTH_KEY_URL"
+              echo "📥 Downloaded AuthKey.p8 for APNs"
+            fi
+
+            if grep -q "aps-environment" ios/Runner/Runner.entitlements; then
+              echo "✅ APNs entitlements already enabled."
+            else
+              echo "⚠️ Warning: Missing APNs entitlement in Runner.entitlements."
+            fi
           else
-            echo "❌ Missing GoogleService-Info.plist. Cannot proceed with Firebase setup."
-            exit 1
+            echo "🚫 PUSH_NOTIFY is false. Skipping Firebase push notification setup for iOS."
+            rm -f ios/Runner/GoogleService-Info.plist
+            rm -f ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+            echo "🧹 Cleaned up Firebase iOS config."
           fi
-        
-          # 2. Add Firebase SDK (via committed Package.resolved)
-          if [ -f "firebase/ios/Package.resolved" ]; then
-            mkdir -p ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
-            cp firebase/ios/Package.resolved ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
-            echo "📦 Firebase SDK resolved from committed Package.resolved."
-          else
-            echo "⚠️ Package.resolved not found. Firebase SDK must be added manually in Xcode."
-          fi
-        
-          # 3. Download APNs Auth Key if provided (Optional)
-          if [ -n "$APNS_AUTH_KEY_URL" ]; then
-            wget -O firebase/ios/AuthKey.p8 "$APNS_AUTH_KEY_URL"
-            echo "📥 Downloaded AuthKey.p8 for APNs"
-          fi
-        
-          # 4. Check APNs entitlements
-          if grep -q "aps-environment" ios/Runner/Runner.entitlements; then
-            echo "✅ APNs entitlements already enabled."
-          else
-            echo "⚠️ Warning: Missing APNs entitlement in Runner.entitlements."
-          fi
-        else
-          echo "🚫 PUSH_NOTIFY is false. Skipping Firebase push notification setup for iOS."
-          rm -f ios/Runner/GoogleService-Info.plist
-          rm -f ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
-          echo "🧹 Cleaned up Firebase iOS config."
-        fi
+
 
     - &get_json
       name: Get JSON file
@@ -1118,36 +1115,37 @@ workflows:
       - *Update_SDK_Version
       - *Validate_variables
       - *manual_code_sign
-      - *Inject_Firebase_iOS_Push
+
       - name: 📄 Inject entitlements for APNs
         script: |
           echo "📄 Checking entitlements setup..."
-                ENTITLEMENTS_PATH="ios/Runner/Runner.entitlements"
-            
-                if [ ! -f "$ENTITLEMENTS_PATH" ]; then
-                echo "⚠️ Runner.entitlements not found. Creating a default one..."
-                cat > "$ENTITLEMENTS_PATH" <<EOF
-              <?xml version="1.0" encoding="UTF-8"?>
-              <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-              <plist version="1.0">
-              <dict>
-              <key>aps-environment</key>
-              <string>development</string>
-              </dict>
-              </plist>
-              EOF
-              echo "✅ Created default Runner.entitlements with aps-environment=development"
-              fi
-              
-              ENTITLEMENTS_LINE='CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;'
-              
-              if grep -q "CODE_SIGN_ENTITLEMENTS" ios/Runner.xcodeproj/project.pbxproj; then
-              sed -i '' "s|CODE_SIGN_ENTITLEMENTS = .*;|$ENTITLEMENTS_LINE|" ios/Runner.xcodeproj/project.pbxproj
-              echo "✅ Updated entitlements reference."
-              else
-              echo "$ENTITLEMENTS_LINE" >> ios/Runner.xcodeproj/project.pbxproj
-              echo "✅ Injected entitlements reference."
-              fi
+          ENTITLEMENTS_PATH="ios/Runner/Runner.entitlements"
+
+          if [ ! -f "$ENTITLEMENTS_PATH" ]; then
+            echo "⚠️ Runner.entitlements not found. Creating a default one..."
+            cat > "$ENTITLEMENTS_PATH" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+          <key>aps-environment</key>
+          <string>development</string>
+          </dict>
+          </plist>
+          EOF
+          echo "✅ Created default Runner.entitlements with aps-environment=development"
+          fi
+          
+          ENTITLEMENTS_LINE='CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;'
+          
+          if grep -q "CODE_SIGN_ENTITLEMENTS" ios/Runner.xcodeproj/project.pbxproj; then
+          sed -i '' "s|CODE_SIGN_ENTITLEMENTS = .*;|$ENTITLEMENTS_LINE|" ios/Runner.xcodeproj/project.pbxproj
+          echo "✅ Updated entitlements reference."
+          else
+          echo "$ENTITLEMENTS_LINE" >> ios/Runner.xcodeproj/project.pbxproj
+          echo "✅ Injected entitlements reference."
+          fi
+      - *Inject_Firebase_iOS_Push
       - *Update_Target_Version
       - *install_CocoaPods
       - *build_ipa
