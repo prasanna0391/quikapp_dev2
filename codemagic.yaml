@@ -168,6 +168,7 @@ definitions:
         
         echo "*********** DEEPLINK Configuration ***********"
         echo "IS_DEEPLINK: $IS_DEEPLINK"
+
     - &Validate_variables
       name: ✅ Validate required environment variables
       script: |
@@ -185,7 +186,7 @@ definitions:
                           exit 1
                         fi
                       done
-                
+                      echo "Bundle ID: $BUNDLE_ID"
                       echo "✅ All required environment variables are present and valid."
 #        REQUIRED_VARS=(
 #            BUNDLE_ID
@@ -1105,7 +1106,6 @@ workflows:
       cocoapods: default
       vars:
         BUNDLE_ID: $PKG_NAME
-#        APP_STORE_CONNECT_TEAM_ID: $APNS_TEAM_ID
     scripts:
       - *change_proj_name
       - *debug_env
@@ -1122,12 +1122,10 @@ workflows:
       - *Update_Target_Version
       - *install_CocoaPods
       - *build_ipa
-
     artifacts:
       - *ios_app
       - flutter_build.log
       - flutter_build2.log
-      - fcm_token.txt
     publishing: *email_release
   ios-and-android-workflow:
       name: ios and android workflow
