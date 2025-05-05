@@ -296,16 +296,16 @@ definitions:
     - &Update_Target_Version
       name: 🔧 Set iOS deployment target
       script: |
-          echo "🔧 Ensuring iOS deployment target is set to 13.0..."
-          PODFILE_PATH="ios/Podfile"
-          
-          if grep -q "platform :ios" "$PODFILE_PATH"; then
-            sed -i '' "s/platform :ios, .*/platform :ios, '13.0'/" "$PODFILE_PATH"
-            echo "✅ Updated existing iOS deployment target to 13.0"
-          else
-            echo "platform :ios, '13.0'" | cat - "$PODFILE_PATH" > temp && mv temp "$PODFILE_PATH"
-            echo "✅ Added iOS deployment target 13.0 to Podfile"
-          fi
+        echo "🔧 Ensuring iOS deployment target is set to 13.0..."
+        PODFILE_PATH="ios/Podfile"
+        
+        if grep -q "platform :ios" "$PODFILE_PATH"; then
+          sed -i '' "s/platform :ios, .*/platform :ios, '13.0'/" "$PODFILE_PATH"
+          echo "✅ Updated existing iOS deployment target to 13.0"
+        else
+          echo "platform :ios, '13.0'" | cat - "$PODFILE_PATH" > temp && mv temp "$PODFILE_PATH"
+          echo "✅ Added iOS deployment target 13.0 to Podfile"
+        fi
     - &build_ipa
       name: Building iOS App with Feature Flags
       script: |
@@ -1110,7 +1110,6 @@ workflows:
       - *change_proj_name
       - *debug_env
       - *change_app_name
-      - *Inject_Firebase_iOS_Push
       - *update_package_names
       - *Update_App_Version
       - *get_logo
@@ -1119,6 +1118,24 @@ workflows:
       - *Update_SDK_Version
       - *Validate_variables
       - *manual_code_sign
+      - *Inject_Firebase_iOS_Push
+      - name: 📄 Inject entitlements for APNs
+        script: |
+            echo "📄 Checking entitlements setup..."
+            if [ ! -f ios/Runner/Runner.entitlements ]; then
+              echo "❌ Runner.entitlements not found. Please ensure it's checked into your repo."
+              exit 1
+            fi
+            
+            ENTITLEMENTS_LINE='CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;'
+            
+            if grep -q "CODE_SIGN_ENTITLEMENTS" ios/Runner.xcodeproj/project.pbxproj; then
+              sed -i '' "s|CODE_SIGN_ENTITLEMENTS = .*;|$ENTITLEMENTS_LINE|" ios/Runner.xcodeproj/project.pbxproj
+              echo "✅ Updated entitlements reference."
+            else
+              echo "$ENTITLEMENTS_LINE" >> ios/Runner.xcodeproj/project.pbxproj
+              echo "✅ Injected entitlements reference."
+            fi
       - *Update_Target_Version
       - *install_CocoaPods
       - *build_ipa
