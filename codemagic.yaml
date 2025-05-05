@@ -183,37 +183,39 @@ definitions:
       name: 🔐 Automatic code signing via App Store Connect
       script: |
         echo "🗕 Starting automatic code signing..."
+
+          # Step 0: Check if private key is empty
           if [ -z "$APP_STORE_CONNECT_PRIVATE_KEY" ]; then
             echo "❌ APP_STORE_CONNECT_PRIVATE_KEY is empty or not set"
             exit 1
           fi
+
           # Step 1: Decode and sanitize base64 PEM key
           echo "🔐 Decoding base64 private key..."
           echo "$APP_STORE_CONNECT_PRIVATE_KEY" \
           | tr -d '\r' \
           | base64 --decode \
           | awk '{ sub(/\r$/, ""); print }' > private_key.p8
-        
-          if ! grep -q "END PRIVATE KEY" private_key.p8; then
-                echo "📝 Appending missing END PRIVATE KEY marker..."
-                echo '-----END PRIVATE KEY-----' >> private_key.p8
-              fi
-         
+
           # Step 2: Strip any non-ASCII characters (invisible BOM, etc.)
           echo "🧼 Cleaning private key for non-ASCII characters..."
           LC_ALL=C tr -cd '\11\12\15\40-\176' < private_key.p8 > clean_key.p8
           mv clean_key.p8 private_key.p8
 
-          # Step 3: Verify PEM header
+          # Step 2.1: Ensure END marker is present
+          if ! grep -q "END PRIVATE KEY" private_key.p8; then
+            echo "📝 Appending missing END PRIVATE KEY marker..."
+            echo '-----END PRIVATE KEY-----' >> private_key.p8
+          fi
+
+          # Step 3: Verify PEM format
           echo "📄 Preview of decoded private_key.p8:"
           head -n 5 private_key.p8
 
-          if ! grep -q "BEGIN PRIVATE KEY" private_key.p8; then
+          if ! grep -q "BEGIN PRIVATE KEY" private_key.p8 || ! grep -q "END PRIVATE KEY" private_key.p8; then
             echo "❌ Decoded private_key.p8 is not in valid PEM format!"
             exit 1
           else
-            
-
             echo "✅ private_key.p8 is in valid PEM format."
           fi
 
@@ -228,19 +230,16 @@ definitions:
           --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
           --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
           --private-key private_key.p8 \
-          --team-id "$APNS_TEAM_ID"
-
-          STATUS=$?
-
-          # Step 5: Result handling
-          if [ $STATUS -eq 0 ]; then
-            echo "✅ Code signing setup complete!"
-          else
-            echo "❌ Code signing failed with exit code $STATUS"
-            echo "🔍 Dumping private_key.p8 for debugging:"
-            cat private_key.p8
-            exit 1
-          fi
+          --team-id "$APP_STORE_CONNECT_TEAM_ID" \
+          "$PKG_NAME"
+          --type IOS_APP_ADHOC \
+          --bundle-id "$BUNDLE_ID" \
+          --create \
+          --download \
+          --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+          --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+          --private-key private_key.p8 \
+          --team-id "$APP_STORE_CONNECT_TEAM_ID"
 
 
     - &get_splash
