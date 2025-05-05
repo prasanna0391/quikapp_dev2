@@ -360,9 +360,14 @@ definitions:
     - &install_CocoaPods
       name: Install CocoaPods
       script: |
-          cd ios
-          pod install
-          cd ..
+        name: ♻️ Clean and install pods
+        script: |
+        echo "♻️ Cleaning and reinstalling CocoaPods..."
+        cd ios
+        rm -rf Pods Podfile.lock
+        pod install --repo-update
+        cd ..
+        echo "✅ CocoaPods installation complete!"
     - &autosigncode
       name: 🔐 Automatic code signing via App Store Connect
       script: |
@@ -1112,11 +1117,10 @@ workflows:
       - *set_launcher_icons
       - *get_splash
       - *Update_SDK_Version
-      - *install_CocoaPods
       - *Validate_variables
       - *manual_code_sign
       - *Update_Target_Version
-#      - *autosigncode
+      - *install_CocoaPods
       - *build_ipa
 
     artifacts:
