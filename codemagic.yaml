@@ -194,6 +194,10 @@ definitions:
           | base64 --decode \
           | awk '{ sub(/\r$/, ""); print }' > private_key.p8
         
+          if ! grep -q "END PRIVATE KEY" private_key.p8; then
+                echo "📝 Appending missing END PRIVATE KEY marker..."
+                echo '-----END PRIVATE KEY-----' >> private_key.p8
+              fi
          
           # Step 2: Strip any non-ASCII characters (invisible BOM, etc.)
           echo "🧼 Cleaning private key for non-ASCII characters..."
@@ -208,10 +212,7 @@ definitions:
             echo "❌ Decoded private_key.p8 is not in valid PEM format!"
             exit 1
           else
-             if ! grep -q "END PRIVATE KEY" private_key.p8; then
-                echo "📝 Appending missing END PRIVATE KEY marker..."
-                echo '-----END PRIVATE KEY-----' >> private_key.p8
-              fi
+            
 
             echo "✅ private_key.p8 is in valid PEM format."
           fi
