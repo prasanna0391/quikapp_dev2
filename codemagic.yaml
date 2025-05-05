@@ -212,31 +212,85 @@ definitions:
       name: 🔏 Manual code signing from base64
       script: |
         echo "🔧 Starting manual code signing from base64..."
-        
-        # Decode .p12 certificate
-        echo "📥 Decoding distribution.p12 from base64..."
-        mkdir -p certs
-        echo "$BASE64_P12" | base64 --decode > certs/distribution.p12
-        
-        # Decode provisioning profile
-        echo "📥 Decoding provisioning profile from base64..."
-        mkdir -p profiles
-        echo "$BASE64_PROVISIONING_PROFILE" | base64 --decode > profiles/profile.mobileprovision
-        
-        # Install the certificate
-        echo "📜 Importing distribution certificate..."
-        security create-keychain -p "" build.keychain
-        security import certs/distribution.p12 -k build.keychain -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-        security list-keychains -s build.keychain
-        security default-keychain -s build.keychain
-        security unlock-keychain -p "" build.keychain
-        
-        # Install provisioning profile
-        echo "📄 Installing provisioning profile..."
-        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-        cp profiles/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
-        
-        echo "✅ Manual code signing setup complete!"
+
+                  # Ensure BASE64_P12 and BASE64_PROVISIONING_PROFILE are not empty
+                  if [ -z "$BASE64_P12" ]; then
+                    echo "❌ BASE64_P12 is empty or not set"
+                    exit 1
+                  fi
+                  if [ -z "$BASE64_PROVISIONING_PROFILE" ]; then
+                    echo "❌ BASE64_PROVISIONING_PROFILE is empty or not set"
+                    exit 1
+                  fi
+
+                  # Debug: show length of BASE64_P12
+                  echo "ℹ️ BASE64_P12 length: ${#BASE64_P12} characters"
+
+                  # Decode .p12 certificate
+                  echo "📥 Decoding distribution.p12 from base64..."
+                  mkdir -p certs
+                  echo "$BASE64_P12" | base64 --decode > certs/distribution.p12 || {
+                    echo "❌ Failed to decode BASE64_P12"
+                    exit 1
+                  }
+
+                  # Debug: inspect p12 file size
+                  echo "ℹ️ distribution.p12 size:" $(stat -f%z certs/distribution.p12) "bytes"
+
+                  # Decode provisioning profile
+                  echo "📥 Decoding provisioning profile from base64..."
+                  mkdir -p profiles
+                  echo "$BASE64_PROVISIONING_PROFILE" | base64 --decode > profiles/profile.mobileprovision || {
+                    echo "❌ Failed to decode BASE64_PROVISIONING_PROFILE"
+                    exit 1
+                  }
+
+                  # Install the certificate
+                  echo "📜 Importing distribution certificate..."
+                  security create-keychain -p "" build.keychain
+                  security import certs/distribution.p12 -k build.keychain -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign || {
+                    echo "❌ Failed to import distribution.p12"
+                    exit 1
+                  }
+                  security list-keychains -s build.keychain
+                  security default-keychain -s build.keychain
+                  security unlock-keychain -p "" build.keychain
+
+                  # Install provisioning profile
+                  echo "📄 Installing provisioning profile..."
+                  mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+                  cp profiles/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/ || {
+                    echo "❌ Failed to install provisioning profile"
+                    exit 1
+                  }
+
+                  echo "✅ Manual code signing setup complete!"
+#        echo "🔧 Starting manual code signing from base64..."
+#
+#        # Decode .p12 certificate
+#        echo "📥 Decoding distribution.p12 from base64..."
+#        mkdir -p certs
+#        echo "$BASE64_P12" | base64 --decode > certs/distribution.p12
+#
+#        # Decode provisioning profile
+#        echo "📥 Decoding provisioning profile from base64..."
+#        mkdir -p profiles
+#        echo "$BASE64_PROVISIONING_PROFILE" | base64 --decode > profiles/profile.mobileprovision
+#
+#        # Install the certificate
+#        echo "📜 Importing distribution certificate..."
+#        security create-keychain -p "" build.keychain
+#        security import certs/distribution.p12 -k build.keychain -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+#        security list-keychains -s build.keychain
+#        security default-keychain -s build.keychain
+#        security unlock-keychain -p "" build.keychain
+#
+#        # Install provisioning profile
+#        echo "📄 Installing provisioning profile..."
+#        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+#        cp profiles/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+#
+#        echo "✅ Manual code signing setup complete!"
 
     - &Update_Target_Version
       name: 🔧 Set iOS deployment target
