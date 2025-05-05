@@ -207,7 +207,7 @@ definitions:
 
        
 
-        echo "✅ All required environment variables are present and valid."
+#        echo "✅ All required environment variables are present and valid."
     - &manual_code_sign
       name: 🔏 Manual code signing from base64
       script: |
