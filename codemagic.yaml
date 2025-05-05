@@ -1124,29 +1124,29 @@ workflows:
           if [ ! -f "$ENTITLEMENTS_PATH" ]; then
             echo "⚠️ Runner.entitlements not found. Creating a default one..."
             cat <<EOF > "$ENTITLEMENTS_PATH"
-            <?xml version="1.0" encoding="UTF-8"?>
-            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-            <plist version="1.0">
-            <dict>
-            <key>aps-environment</key>
-            <string>development</string>
-            </dict>
-            </plist>
-            EOF
-            echo "✅ Created default Runner.entitlements with aps-environment=development"
+              <?xml version="1.0" encoding="UTF-8"?>
+              <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+              <plist version="1.0">
+              <dict>
+                <key>aps-environment</key>
+                <string>development</string>
+              </dict>
+              </plist>
+              EOF
+          echo "✅ Created default Runner.entitlements with aps-environment=development"
           fi
-            
-            echo "🔧 Checking for existing CODE_SIGN_ENTITLEMENTS..."
-            FILE="ios/Runner.xcodeproj/project.pbxproj"
-            ENTITLEMENTS_LINE='CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;'
-            
-            if grep -q "CODE_SIGN_ENTITLEMENTS" "$FILE"; then
-              echo "✅ CODE_SIGN_ENTITLEMENTS already present. Updating if needed..."
-              sed -i '' "s|CODE_SIGN_ENTITLEMENTS = .*;|$ENTITLEMENTS_LINE|" "$FILE"
-            else
-              echo "⚠️ CODE_SIGN_ENTITLEMENTS not found. Skipping automatic injection to avoid corrupting project.pbxproj."
-              echo "👉 Please ensure CODE_SIGN_ENTITLEMENTS is set in Xcode manually or use a safer script to inject it properly."
-            fi
+          
+          echo "🔧 Checking for existing CODE_SIGN_ENTITLEMENTS..."
+          FILE="ios/Runner.xcodeproj/project.pbxproj"
+          ENTITLEMENTS_LINE='CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;'
+          
+          if grep -q "CODE_SIGN_ENTITLEMENTS" "$FILE"; then
+            sed -i '' "s|CODE_SIGN_ENTITLEMENTS = .*;|$ENTITLEMENTS_LINE|" "$FILE"
+            echo "✅ Updated entitlements reference."
+          else
+            echo "⚠️ CODE_SIGN_ENTITLEMENTS not found. Skipping automatic injection to avoid corrupting project.pbxproj."
+            echo "👉 Please set CODE_SIGN_ENTITLEMENTS manually in Xcode if needed."
+          fi
 
       - *Inject_Firebase_iOS_Push
       - *Update_Target_Version
