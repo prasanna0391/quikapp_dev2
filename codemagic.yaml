@@ -50,6 +50,11 @@ definitions:
         BOTTOMMENU_ICON_POSITION: $BOTTOMMENU_ICON_POSITION
         BOTTOMMENU_VISIBLE_ON: $BOTTOMMENU_VISIBLE_ON
         IS_DEEPLINK: $IS_DEEPLINK
+
+        BASE64_P12: $BASE64_P12
+        CERTIFICATE_PASSWORD: $CERTIFICATE_PASSWORD
+        BASE64_PROVISIONING_PROFILE: $BASE64_PROVISIONING_PROFILE
+
         APP_STORE_CONNECT_PRIVATE_KEY: $APP_STORE_CONNECT_PRIVATE_KEY
         APP_STORE_CONNECT_ISSUER_ID: $APP_STORE_CONNECT_ISSUER_ID
         APP_STORE_CONNECT_KEY_IDENTIFIER: $APP_STORE_CONNECT_KEY_IDENTIFIER
@@ -108,6 +113,11 @@ definitions:
         echo "APNS_KEY_ID: $APNS_KEY_ID"
         echo "APNS_TEAM_ID: $APNS_TEAM_ID"
         echo "APNS_AUTH_KEY_URL: $APNS_AUTH_KEY_URL"
+        
+        echo "BASE64_P12: $BASE64_P12"
+        echo "CERTIFICATE_PASSWORD: $CERTIFICATE_PASSWORD"
+        echo "BASE64_PROVISIONING_PROFILE: $BASE64_PROVISIONING_PROFILE"
+        
         echo "APP_STORE_CONNECT_PRIVATE_KEY: $APP_STORE_CONNECT_PRIVATE_KEY"
         echo "APP_STORE_CONNECT_ISSUER_ID: $APP_STORE_CONNECT_ISSUER_ID"
         echo "APP_STORE_CONNECT_KEY_IDENTIFIER: $APP_STORE_CONNECT_KEY_IDENTIFIER"
@@ -161,27 +171,125 @@ definitions:
     - &Validate_variables
       name: ✅ Validate required environment variables
       script: |
-        REQUIRED_VARS=(
-            BUNDLE_ID
-            APNS_TEAM_ID
-            APP_STORE_CONNECT_PRIVATE_KEY
-            APP_STORE_CONNECT_ISSUER_ID
-            APP_STORE_CONNECT_KEY_IDENTIFIER
-            APP_STORE_CONNECT_TEAM_ID
-          )
-
-          for VAR in "${REQUIRED_VARS[@]}"; do
-            if [ -z "${!VAR}" ]; then
-              echo "❌ Environment variable $VAR is missing. Please set it in Codemagic or your credentials group."
-              exit 1
-            fi
-          done
-
-          echo "✅ All required environment variables are present and valid."
+                REQUIRED_VARS=(
+                        BUNDLE_ID
+                        APNS_TEAM_ID
+                        BASE64_P12
+                        BASE64_PROVISIONING_PROFILE
+                        CERTIFICATE_PASSWORD
+                      )
+                
+                      for VAR in "${REQUIRED_VARS[@]}"; do
+                        if [ -z "${!VAR}" ]; then
+                          echo "❌ Environment variable $VAR is missing. Please set it in Codemagic.yaml."
+                          exit 1
+                        fi
+                      done
+                
+                      echo "✅ All required environment variables are present and valid."
+#        REQUIRED_VARS=(
+#            BUNDLE_ID
+#            APNS_TEAM_ID
+#            APP_STORE_CONNECT_PRIVATE_KEY
+#            APP_STORE_CONNECT_ISSUER_ID
+#            APP_STORE_CONNECT_KEY_IDENTIFIER
+#            APP_STORE_CONNECT_TEAM_ID
+#          )
+#
+#          for VAR in "${REQUIRED_VARS[@]}"; do
+#            if [ -z "${!VAR}" ]; then
+#              echo "❌ Environment variable $VAR is missing. Please set it in Codemagic or your credentials group."
+#              exit 1
+#            fi
+#          done
+#
+#          echo "✅ All required environment variables are present and valid."
 
        
 
         echo "✅ All required environment variables are present and valid."
+    - &manual_code_sign
+      name: 🔏 Manual code signing from base64
+      script: |
+        echo "🔧 Starting manual code signing from base64..."
+        
+        # Decode .p12 certificate
+        echo "📥 Decoding distribution.p12 from base64..."
+        mkdir -p certs
+        echo "$BASE64_P12" | base64 --decode > certs/distribution.p12
+        
+        # Decode provisioning profile
+        echo "📥 Decoding provisioning profile from base64..."
+        mkdir -p profiles
+        echo "$BASE64_PROVISIONING_PROFILE" | base64 --decode > profiles/profile.mobileprovision
+        
+        # Install the certificate
+        echo "📜 Importing distribution certificate..."
+        security create-keychain -p "" build.keychain
+        security import certs/distribution.p12 -k build.keychain -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+        security list-keychains -s build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "" build.keychain
+        
+        # Install provisioning profile
+        echo "📄 Installing provisioning profile..."
+        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+        cp profiles/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+        
+        echo "✅ Manual code signing setup complete!"
+    - &build_ipa
+      name: Building iOS App with Feature Flags
+      script: |
+        echo "✅ Building iOS IPA..."
+        flutter build ipa \
+          --release \
+          --dart-define=WEB_URL="$WEB_URL" \
+          --dart-define=PUSH_NOTIFY="$PUSH_NOTIFY" \
+          --dart-define=PKG_NAME="$PKG_NAME" \
+          --dart-define=APP_NAME="$APP_NAME" \
+          --dart-define=ORG_NAME="$ORG_NAME" \
+          --dart-define=VERSION_NAME="$VERSION_NAME" \
+          --dart-define=VERSION_CODE="$VERSION_CODE" \
+          --dart-define=EMAIL_ID="$EMAIL_ID" \
+          --dart-define=IS_SPLASH="$IS_SPLASH" \
+          --dart-define=SPLASH="$SPLASH" \
+          --dart-define=SPLASH_BG="$SPLASH_BG" \
+          --dart-define=SPLASH_ANIMATION="$SPLASH_ANIMATION" \
+          --dart-define=SPLASH_BG_COLOR="$SPLASH_BG_COLOR" \
+          --dart-define=SPLASH_TAGLINE="$SPLASH_TAGLINE" \
+          --dart-define=SPLASH_TAGLINE_COLOR="$SPLASH_TAGLINE_COLOR" \
+          --dart-define=SPLASH_DURATION="$SPLASH_DURATION" \
+          --dart-define=IS_PULLDOWN="$IS_PULLDOWN" \
+          --dart-define=LOGO_URL="$LOGO_URL" \
+          --dart-define=IS_BOTTOMMENU="$IS_BOTTOMMENU" \
+          --dart-define=BOTTOMMENU_ITEMS="$BOTTOMMENU_ITEMS" \
+          --dart-define=BOTTOMMENU_BG_COLOR="$BOTTOMMENU_BG_COLOR" \
+          --dart-define=BOTTOMMENU_ICON_COLOR="$BOTTOMMENU_ICON_COLOR" \
+          --dart-define=BOTTOMMENU_TEXT_COLOR="$BOTTOMMENU_TEXT_COLOR" \
+          --dart-define=BOTTOMMENU_ACTIVE_TAB_COLOR="$BOTTOMMENU_ACTIVE_TAB_COLOR" \
+          --dart-define=BOTTOMMENU_ICON_POSITION="$BOTTOMMENU_ICON_POSITION" \
+          --dart-define=BOTTOMMENU_VISIBLE_ON="$BOTTOMMENU_VISIBLE_ON" \
+          --dart-define=IS_DEEPLINK="$IS_DEEPLINK" \
+          --dart-define=IS_CAMERA="$IS_CAMERA" \
+          --dart-define=IS_LOCATION="$IS_LOCATION" \
+          --dart-define=IS_BIOMETRIC="$IS_BIOMETRIC" \
+          --dart-define=IS_MIC="$IS_MIC" \
+          --dart-define=IS_CONTACT="$IS_CONTACT" \
+          --dart-define=IS_CALENDAR="$IS_CALENDAR" \
+          --dart-define=IS_NOTIFICATION="$IS_NOTIFICATION" \
+          --dart-define=IS_STORAGE="$IS_STORAGE" \
+          --dart-define=firebase_config_android="$firebase_config_android" \
+          --dart-define=firebase_config_ios="$firebase_config_ios" \
+          --dart-define=APNS_KEY_ID="$APNS_KEY_ID" \
+          --dart-define=APNS_TEAM_ID="$APNS_TEAM_ID" \
+          --dart-define=APNS_AUTH_KEY_URL="$APNS_AUTH_KEY_URL" \
+          --dart-define=KEY_STORE="$KEY_STORE" \
+          --dart-define=CM_KEYSTORE_PASSWORD="$CM_KEYSTORE_PASSWORD" \
+          --dart-define=CM_KEY_ALIAS="$CM_KEY_ALIAS" \
+          --dart-define=CM_KEY_PASSWORD="$CM_KEY_PASSWORD" \
+          --no-codesign > flutter_build2.log
+          echo "✅ IPA build completed."
+
     - &autosigncode
       name: 🔐 Automatic code signing via App Store Connect
       script: |
@@ -783,58 +891,6 @@ definitions:
                  exit 1
                fi         
 
-    - &build_ipa
-      name: Building iOS App with Feature Flags
-      script: |
-        echo "✅ Building iOS IPA..."
-        flutter build ipa \
-          --release \
-          --dart-define=WEB_URL="$WEB_URL" \
-          --dart-define=PUSH_NOTIFY="$PUSH_NOTIFY" \
-          --dart-define=PKG_NAME="$PKG_NAME" \
-          --dart-define=APP_NAME="$APP_NAME" \
-          --dart-define=ORG_NAME="$ORG_NAME" \
-          --dart-define=VERSION_NAME="$VERSION_NAME" \
-          --dart-define=VERSION_CODE="$VERSION_CODE" \
-          --dart-define=EMAIL_ID="$EMAIL_ID" \
-          --dart-define=IS_SPLASH="$IS_SPLASH" \
-          --dart-define=SPLASH="$SPLASH" \
-          --dart-define=SPLASH_BG="$SPLASH_BG" \
-          --dart-define=SPLASH_ANIMATION="$SPLASH_ANIMATION" \
-          --dart-define=SPLASH_BG_COLOR="$SPLASH_BG_COLOR" \
-          --dart-define=SPLASH_TAGLINE="$SPLASH_TAGLINE" \
-          --dart-define=SPLASH_TAGLINE_COLOR="$SPLASH_TAGLINE_COLOR" \
-          --dart-define=SPLASH_DURATION="$SPLASH_DURATION" \
-          --dart-define=IS_PULLDOWN="$IS_PULLDOWN" \
-          --dart-define=LOGO_URL="$LOGO_URL" \
-          --dart-define=IS_BOTTOMMENU="$IS_BOTTOMMENU" \
-          --dart-define=BOTTOMMENU_ITEMS="$BOTTOMMENU_ITEMS" \
-          --dart-define=BOTTOMMENU_BG_COLOR="$BOTTOMMENU_BG_COLOR" \
-          --dart-define=BOTTOMMENU_ICON_COLOR="$BOTTOMMENU_ICON_COLOR" \
-          --dart-define=BOTTOMMENU_TEXT_COLOR="$BOTTOMMENU_TEXT_COLOR" \
-          --dart-define=BOTTOMMENU_ACTIVE_TAB_COLOR="$BOTTOMMENU_ACTIVE_TAB_COLOR" \
-          --dart-define=BOTTOMMENU_ICON_POSITION="$BOTTOMMENU_ICON_POSITION" \
-          --dart-define=BOTTOMMENU_VISIBLE_ON="$BOTTOMMENU_VISIBLE_ON" \
-          --dart-define=IS_DEEPLINK="$IS_DEEPLINK" \
-          --dart-define=IS_CAMERA="$IS_CAMERA" \
-          --dart-define=IS_LOCATION="$IS_LOCATION" \
-          --dart-define=IS_BIOMETRIC="$IS_BIOMETRIC" \
-          --dart-define=IS_MIC="$IS_MIC" \
-          --dart-define=IS_CONTACT="$IS_CONTACT" \
-          --dart-define=IS_CALENDAR="$IS_CALENDAR" \
-          --dart-define=IS_NOTIFICATION="$IS_NOTIFICATION" \
-          --dart-define=IS_STORAGE="$IS_STORAGE" \
-          --dart-define=firebase_config_android="$firebase_config_android" \
-          --dart-define=firebase_config_ios="$firebase_config_ios" \
-          --dart-define=APNS_KEY_ID="$APNS_KEY_ID" \
-          --dart-define=APNS_TEAM_ID="$APNS_TEAM_ID" \
-          --dart-define=APNS_AUTH_KEY_URL="$APNS_AUTH_KEY_URL" \
-          --dart-define=KEY_STORE="$KEY_STORE" \
-          --dart-define=CM_KEYSTORE_PASSWORD="$CM_KEYSTORE_PASSWORD" \
-          --dart-define=CM_KEY_ALIAS="$CM_KEY_ALIAS" \
-          --dart-define=CM_KEY_PASSWORD="$CM_KEY_PASSWORD" \
-          --no-codesign > flutter_build2.log
-          echo "✅ IPA build completed."
 
     - &build_apk
       name: Building Apk with Feature Flags
@@ -971,7 +1027,7 @@ workflows:
       cocoapods: default
       vars:
         BUNDLE_ID: $PKG_NAME
-        APP_STORE_CONNECT_TEAM_ID: $APNS_TEAM_ID
+#        APP_STORE_CONNECT_TEAM_ID: $APNS_TEAM_ID
     scripts:
       - *change_proj_name
       - *debug_env
@@ -984,7 +1040,8 @@ workflows:
       - *get_splash
       - *Update_SDK_Version
       - *Validate_variables
-      - *autosigncode
+      - *manual_code_sign
+#      - *autosigncode
       - *build_ipa
 
     artifacts:
