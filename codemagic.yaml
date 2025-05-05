@@ -196,9 +196,12 @@ definitions:
           # Step 1: Decode and sanitize base64 PEM key
           echo "🔐 Decoding base64 private key..."
           echo "$APP_STORE_CONNECT_PRIVATE_KEY" \
-          | tr -d '\r' \
           | base64 --decode \
-          | awk '{ sub(/\r$/, ""); print }' > private_key.p8
+          | tr -d '\r' \
+          | awk '{ printf "%s\n", $0 }' > private_key.p8
+
+          # Step 1.1: Ensure newline at EOF
+          tail -c1 private_key.p8 | read -r _ || echo >> private_key.p8
 
           # Step 2: Strip any non-ASCII characters (invisible BOM, etc.)
           echo "🧼 Cleaning private key for non-ASCII characters..."
