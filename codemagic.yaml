@@ -968,6 +968,7 @@ workflows:
       cocoapods: default
       vars:
         BUNDLE_ID: $PKG_NAME
+        APP_STORE_CONNECT_TEAM_ID: $APNS_TEAM_ID
     scripts:
       - *change_proj_name
       - *debug_env
