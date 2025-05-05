@@ -162,19 +162,22 @@ definitions:
       name: ✅ Validate required environment variables
       script: |
         REQUIRED_VARS=(
-          PKG_NAME
-          APNS_TEAM_ID
-          APP_STORE_CONNECT_PRIVATE_KEY
-          APP_STORE_CONNECT_ISSUER_ID
-          APP_STORE_CONNECT_KEY_IDENTIFIER
-        )
+            BUNDLE_ID
+            APNS_TEAM_ID
+            APP_STORE_CONNECT_PRIVATE_KEY
+            APP_STORE_CONNECT_ISSUER_ID
+            APP_STORE_CONNECT_KEY_IDENTIFIER
+            APP_STORE_CONNECT_TEAM_ID
+          )
 
-        for VAR in "${REQUIRED_VARS[@]}"; do
-          if [ -z "${!VAR}" ]; then
-            echo "❌ Environment variable $VAR is missing. Please set it in Codemagic or your credentials group."
-            exit 1
-          fi
-        done
+          for VAR in "${REQUIRED_VARS[@]}"; do
+            if [ -z "${!VAR}" ]; then
+              echo "❌ Environment variable $VAR is missing. Please set it in Codemagic or your credentials group."
+              exit 1
+            fi
+          done
+
+          echo "✅ All required environment variables are present and valid."
 
        
 
@@ -204,7 +207,7 @@ definitions:
 
           # Step 2.1: Ensure END marker is present
           if ! grep -q "END PRIVATE KEY" private_key.p8; then
-            echo "📝 Appending missing END PRIVATE KEY marker..."
+            echo "🗘 Appending missing END PRIVATE KEY marker..."
             echo '-----END PRIVATE KEY-----' >> private_key.p8
           fi
 
@@ -224,22 +227,25 @@ definitions:
 
           app-store-connect fetch-signing-files \
           --type IOS_APP_ADHOC \
-          --bundle-id "$PKG_NAME" \
-          --create \
-          --download \
-          --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
-          --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-          --private-key private_key.p8 \
-          --team-id "$APP_STORE_CONNECT_TEAM_ID" \
-          "$PKG_NAME"
-          --type IOS_APP_ADHOC \
           --bundle-id "$BUNDLE_ID" \
           --create \
           --download \
           --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
           --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
           --private-key private_key.p8 \
-          --team-id "$APP_STORE_CONNECT_TEAM_ID"
+          --team-id "$APP_STORE_CONNECT_TEAM_ID" \
+          "$BUNDLE_ID"
+
+          STATUS=$?
+
+          if [ $STATUS -eq 0 ]; then
+            echo "✅ Code signing setup complete!"
+          else
+            echo "❌ Code signing failed with exit code $STATUS"
+            echo "🔍 Dumping private_key.p8 for debugging:"
+            cat private_key.p8
+            exit 1
+          fi
 
 
     - &get_splash
@@ -960,7 +966,8 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
-
+      vars:
+        BUNDLE_ID: $PKG_NAME
     scripts:
       - *change_proj_name
       - *debug_env
