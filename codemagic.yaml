@@ -1300,6 +1300,50 @@ workflows:
             echo "📦 Building IPA using flutter build ipa..."
             flutter build ipa \
               --release \
+              --dart-define=WEB_URL="$WEB_URL" \
+              --dart-define=PUSH_NOTIFY="$PUSH_NOTIFY" \
+              --dart-define=PKG_NAME="$PKG_NAME" \
+              --dart-define=APP_NAME="$APP_NAME" \
+              --dart-define=ORG_NAME="$ORG_NAME" \
+              --dart-define=VERSION_NAME="$VERSION_NAME" \
+              --dart-define=VERSION_CODE="$VERSION_CODE" \
+              --dart-define=EMAIL_ID="$EMAIL_ID" \
+              --dart-define=IS_SPLASH="$IS_SPLASH" \
+              --dart-define=SPLASH="$SPLASH" \
+              --dart-define=SPLASH_BG="$SPLASH_BG" \
+              --dart-define=SPLASH_ANIMATION="$SPLASH_ANIMATION" \
+              --dart-define=SPLASH_BG_COLOR="$SPLASH_BG_COLOR" \
+              --dart-define=SPLASH_TAGLINE="$SPLASH_TAGLINE" \
+              --dart-define=SPLASH_TAGLINE_COLOR="$SPLASH_TAGLINE_COLOR" \
+              --dart-define=SPLASH_DURATION="$SPLASH_DURATION" \
+              --dart-define=IS_PULLDOWN="$IS_PULLDOWN" \
+              --dart-define=LOGO_URL="$LOGO_URL" \
+              --dart-define=IS_BOTTOMMENU="$IS_BOTTOMMENU" \
+              --dart-define=BOTTOMMENU_ITEMS="$BOTTOMMENU_ITEMS" \
+              --dart-define=BOTTOMMENU_BG_COLOR="$BOTTOMMENU_BG_COLOR" \
+              --dart-define=BOTTOMMENU_ICON_COLOR="$BOTTOMMENU_ICON_COLOR" \
+              --dart-define=BOTTOMMENU_TEXT_COLOR="$BOTTOMMENU_TEXT_COLOR" \
+              --dart-define=BOTTOMMENU_ACTIVE_TAB_COLOR="$BOTTOMMENU_ACTIVE_TAB_COLOR" \
+              --dart-define=BOTTOMMENU_ICON_POSITION="$BOTTOMMENU_ICON_POSITION" \
+              --dart-define=BOTTOMMENU_VISIBLE_ON="$BOTTOMMENU_VISIBLE_ON" \
+              --dart-define=IS_DEEPLINK="$IS_DEEPLINK" \
+              --dart-define=IS_CAMERA="$IS_CAMERA" \
+              --dart-define=IS_LOCATION="$IS_LOCATION" \
+              --dart-define=IS_BIOMETRIC="$IS_BIOMETRIC" \
+              --dart-define=IS_MIC="$IS_MIC" \
+              --dart-define=IS_CONTACT="$IS_CONTACT" \
+              --dart-define=IS_CALENDAR="$IS_CALENDAR" \
+              --dart-define=IS_NOTIFICATION="$IS_NOTIFICATION" \
+              --dart-define=IS_STORAGE="$IS_STORAGE" \
+              --dart-define=firebase_config_android="$firebase_config_android" \
+              --dart-define=firebase_config_ios="$firebase_config_ios" \
+              --dart-define=APNS_KEY_ID="$APNS_KEY_ID" \
+              --dart-define=APNS_TEAM_ID="$APNS_TEAM_ID" \
+              --dart-define=APNS_AUTH_KEY_URL="$APNS_AUTH_KEY_URL" \
+              --dart-define=KEY_STORE="$KEY_STORE" \
+              --dart-define=CM_KEYSTORE_PASSWORD="$CM_KEYSTORE_PASSWORD" \
+              --dart-define=CM_KEY_ALIAS="$CM_KEY_ALIAS" \
+              --dart-define=CM_KEY_PASSWORD="$CM_KEY_PASSWORD" \
               --export-options-plist=ExportOptions.plist
           fi
 
@@ -1330,45 +1374,45 @@ workflows:
 #
 #            echo "✅ Xcode archive build complete!"
 
-      - name: 📦 Export .ipa from Xcode archive
-        script: |
-            echo "📦 Exporting IPA from Xcode archive..."
-            
-            PROFILE_NAME=$(grep -a -A1 "<key>Name</key>" profiles/profile.mobileprovision | grep -a "<string>" | sed -E 's/.*<string>(.*)<\/string>.*/\1/')
-            echo "ℹ️ Extracted provisioning profile name: $PROFILE_NAME"
-            
-            cat > ExportOptions.plist <<EOF
-            <?xml version="1.0" encoding="UTF-8"?>
-            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-            <plist version="1.0">
-            <dict>
-            <key>method</key>
-            <string>app-store</string>
-            <key>provisioningProfiles</key>
-            <dict>
-            <key>$BUNDLE_ID</key>
-            <string>$PROFILE_NAME</string>
-            </dict>
-            <key>signingCertificate</key>
-            <string>Apple Distribution</string>
-            <key>signingStyle</key>
-            <string>manual</string>
-            <key>stripSwiftSymbols</key>
-            <true/>
-            <key>compileBitcode</key>
-            <true/>
-            <key>destination</key>
-            <string>export</string>
-            </dict>
-            </plist>
-            EOF
-            
-            xcodebuild -exportArchive \
-            -archivePath build/ios/archive/Runner.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath build/ios/ipa
-            
-            echo "✅ Export complete!"
+#      - name: 📦 Export .ipa from Xcode archive
+#        script: |
+#            echo "📦 Exporting IPA from Xcode archive..."
+#
+#            PROFILE_NAME=$(grep -a -A1 "<key>Name</key>" profiles/profile.mobileprovision | grep -a "<string>" | sed -E 's/.*<string>(.*)<\/string>.*/\1/')
+#            echo "ℹ️ Extracted provisioning profile name: $PROFILE_NAME"
+#
+#            cat > ExportOptions.plist <<EOF
+#            <?xml version="1.0" encoding="UTF-8"?>
+#            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+#            <plist version="1.0">
+#            <dict>
+#            <key>method</key>
+#            <string>app-store</string>
+#            <key>provisioningProfiles</key>
+#            <dict>
+#            <key>$BUNDLE_ID</key>
+#            <string>$PROFILE_NAME</string>
+#            </dict>
+#            <key>signingCertificate</key>
+#            <string>Apple Distribution</string>
+#            <key>signingStyle</key>
+#            <string>manual</string>
+#            <key>stripSwiftSymbols</key>
+#            <true/>
+#            <key>compileBitcode</key>
+#            <true/>
+#            <key>destination</key>
+#            <string>export</string>
+#            </dict>
+#            </plist>
+#            EOF
+#
+#            xcodebuild -exportArchive \
+#            -archivePath build/ios/archive/Runner.xcarchive \
+#            -exportOptionsPlist ExportOptions.plist \
+#            -exportPath build/ios/ipa
+#
+#            echo "✅ Export complete!"
     artifacts:
       - *ios_app
       - flutter_build.log
