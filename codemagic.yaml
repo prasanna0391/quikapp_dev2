@@ -1117,6 +1117,12 @@ workflows:
       - *get_splash
       - *Update_SDK_Version
       - *Validate_variables
+      - name: 🛠 Set bundle identifier in Xcode project
+        script: |
+          echo "🛠 Updating bundle identifier to $BUNDLE_ID..."
+          sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;/g" ios/Runner.xcodeproj/project.pbxproj
+          echo "✅ Bundle identifier updated."
+
       - *manual_code_sign
       - name: ⚙️ Set manual code signing settings in Xcode project
         script: |
