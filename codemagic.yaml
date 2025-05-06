@@ -118,9 +118,9 @@ definitions:
         echo "CERTIFICATE_PASSWORD: $CERTIFICATE_PASSWORD"
         echo "BASE64_PROVISIONING_PROFILE: $BASE64_PROVISIONING_PROFILE"
         
-#        echo "APP_STORE_CONNECT_PRIVATE_KEY: $APP_STORE_CONNECT_PRIVATE_KEY"
-#        echo "APP_STORE_CONNECT_ISSUER_ID: $APP_STORE_CONNECT_ISSUER_ID"
-#        echo "APP_STORE_CONNECT_KEY_IDENTIFIER: $APP_STORE_CONNECT_KEY_IDENTIFIER"
+        #        echo "APP_STORE_CONNECT_PRIVATE_KEY: $APP_STORE_CONNECT_PRIVATE_KEY"
+        #        echo "APP_STORE_CONNECT_ISSUER_ID: $APP_STORE_CONNECT_ISSUER_ID"
+        #        echo "APP_STORE_CONNECT_KEY_IDENTIFIER: $APP_STORE_CONNECT_KEY_IDENTIFIER"
         
         echo "*********** Firebase Android config file ***********"
         echo "firebase_config_android: $firebase_config_android"
