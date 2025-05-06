@@ -1302,11 +1302,11 @@ workflows:
       - flutter_build.log
       - flutter_build2.log
     publishing:
-      - *email_release
-      - app_store_connect:
-          api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-          issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-          key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+      email: *email_release
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
   ios-and-android-workflow:
       name: ios and android workflow
       max_build_duration: 30
