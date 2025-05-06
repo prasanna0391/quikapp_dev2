@@ -1120,17 +1120,25 @@ workflows:
       - *manual_code_sign
       - name: ⚙️ Set manual code signing settings in Xcode project
         script: |
+          PROFILE_PATH="profiles/profile.mobileprovision"
+            
             echo "⚙️ Setting manual code signing in Xcode project..."
             PROJECT_FILE="ios/Runner.xcodeproj/project.pbxproj"
-            PROFILE_UUID=$(grep -aA1 UUID profiles/profile.mobileprovision | grep -Eo "[-A-F0-9]{36}")
+            
+            # Extract UUID from provisioning profile using security + PlistBuddy
+            echo "📤 Converting provisioning profile to plist..."
+            security cms -D -i "$PROFILE_PATH" -o profile.plist
+            
+            PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" profile.plist)
             
             if [ -z "$PROFILE_UUID" ]; then
-              echo "❌ Could not extract UUID from provisioning profile."
-              exit 1
+            echo "❌ Could not extract UUID from provisioning profile plist."
+            exit 1
             fi
-            
-            echo "ℹ️ Using provisioning profile UUID: $PROFILE_UUID"
-            
+          
+          echo "ℹ️ Using provisioning profile UUID: $PROFILE_UUID"
+          
+          # Inject values into Xcode project
             sed -i '' "s/DEVELOPMENT_TEAM = .*/DEVELOPMENT_TEAM = $APNS_TEAM_ID;/g" "$PROJECT_FILE"
             sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = .*/PROVISIONING_PROFILE_SPECIFIER = \"\";/g" "$PROJECT_FILE"
             sed -i '' "s/PROVISIONING_PROFILE = .*/PROVISIONING_PROFILE = \"$PROFILE_UUID\";/g" "$PROJECT_FILE"
