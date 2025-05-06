@@ -1265,7 +1265,7 @@ workflows:
               PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
               PRODUCT_BUNDLE_IDENTIFIER=$BUNDLE_ID
 
-            cat > ExportOptions.plist <<EOF
+                  cat > ExportOptions.plist <<EOF
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
             <plist version="1.0">
@@ -1290,8 +1290,9 @@ workflows:
             </dict>
             </plist>
             EOF
+  
 
-            xcodebuild -exportArchive \
+  xcodebuild -exportArchive \
               -archivePath build/ios/archive/Runner.xcarchive \
               -exportOptionsPlist ExportOptions.plist \
               -exportPath build/ios/ipa
