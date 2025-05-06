@@ -1178,6 +1178,12 @@ workflows:
           fi
       - *Inject_Firebase_iOS_Push
       - *Update_Target_Version
+      - name: 🔧 Set Xcode project deployment target
+        script: |
+          echo "🔧 Setting deployment target to 13.0 in Xcode project..."
+          find ios/Runner.xcodeproj -name project.pbxproj -print0 | xargs -0 sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*/IPHONEOS_DEPLOYMENT_TARGET = 13.0/g'
+          echo "✅ Xcode project deployment target updated to 13.0"
+
       - *install_CocoaPods
       - *build_ipa
     artifacts:
