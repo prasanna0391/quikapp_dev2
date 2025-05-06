@@ -355,8 +355,8 @@ definitions:
           --dart-define=KEY_STORE="$KEY_STORE" \
           --dart-define=CM_KEYSTORE_PASSWORD="$CM_KEYSTORE_PASSWORD" \
           --dart-define=CM_KEY_ALIAS="$CM_KEY_ALIAS" \
-          --dart-define=CM_KEY_PASSWORD="$CM_KEY_PASSWORD" \
-          --no-codesign > flutter_build2.log
+          --dart-define=CM_KEY_PASSWORD="$CM_KEY_PASSWORD" > flutter_build2.log
+          #--no-codesign 
           echo "✅ IPA build completed."
     - &install_CocoaPods
       name: Install CocoaPods
