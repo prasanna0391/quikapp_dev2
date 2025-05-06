@@ -1191,44 +1191,61 @@ workflows:
           echo "✅ Xcode project deployment target updated to 13.0"
 
       - *install_CocoaPods
-      - *build_ipa
+      - name: 📦 Build Xcode archive
+        script: |
+            echo "📦 Building Xcode archive..."
+            PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< "$(security cms -D -i profiles/profile.mobileprovision)")
+            xcodebuild archive \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath build/ios/archive/Runner.xcarchive \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM=$APNS_TEAM_ID \
+            PROVISIONING_PROFILE_SPECIFIER= \
+            PROVISIONING_PROFILE=$PROFILE_UUID \
+            PRODUCT_BUNDLE_IDENTIFIER=$BUNDLE_ID
+            echo "✅ Xcode archive build complete!"
+
       - name: 📦 Export .ipa from Xcode archive
         script: |
-          echo "📦 Exporting IPA from Xcode archive..."
-
-          cat > ExportOptions.plist <<EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>app-store</string>
-            <key>provisioningProfiles</key>
-            <dict>
-              <key>$BUNDLE_ID</key>
-              <string>Your_Provisioning_Profile_Name</string>
-            </dict>
-            <key>signingCertificate</key>
-            <string>Apple Distribution</string>
-            <key>signingStyle</key>
-            <string>manual</string>
-            <key>stripSwiftSymbols</key>
-            <true/>
-            <key>compileBitcode</key>
-            <true/>
-            <key>destination</key>
-            <string>export</string>
-          </dict>
-          </plist>
-          EOF
-
-          xcodebuild -exportArchive \
-            -archivePath build/ios/archive/Runner.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath build/ios/ipa
-
-          echo "✅ Export complete!"
-
+                echo "📦 Exporting IPA from Xcode archive..."
+                
+                PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" /dev/stdin <<< "$(security cms -D -i profiles/profile.mobileprovision)")
+                
+                cat > ExportOptions.plist <<EOF
+              <?xml version="1.0" encoding="UTF-8"?>
+              <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+              <plist version="1.0">
+              <dict>
+                <key>method</key>
+                <string>app-store</string>
+                <key>provisioningProfiles</key>
+                <dict>
+                  <key>$BUNDLE_ID</key>
+                  <string>$PROFILE_NAME</string>
+                </dict>
+                <key>signingCertificate</key>
+                <string>Apple Distribution</string>
+                <key>signingStyle</key>
+                <string>manual</string>
+                <key>stripSwiftSymbols</key>
+                <true/>
+                <key>compileBitcode</key>
+                <true/>
+                <key>destination</key>
+                <string>export</string>
+              </dict>
+              </plist>
+              EOF
+              
+                xcodebuild -exportArchive \
+                -archivePath build/ios/archive/Runner.xcarchive \
+                -exportOptionsPlist ExportOptions.plist \
+                -exportPath build/ios/ipa
+              
+              echo "✅ Export complete!"
     artifacts:
       - *ios_app
       - flutter_build.log
