@@ -28,7 +28,7 @@ definitions:
         firebase_config_ios: $firebase_config_ios
         APNS_KEY_ID: $APNS_KEY_ID
         APNS_TEAM_ID: $APNS_TEAM_ID
-        APNS_AUTH_KEY_URL: $APNS_AUTH_KEY_URL
+        BASE64_APNS_KEY: $BASE64_APNS_KEY
         PKG_NAME: $PKG_NAME
         EMAIL_ID: $EMAIL_ID
         PUSH_NOTIFY: $PUSH_NOTIFY
@@ -55,9 +55,9 @@ definitions:
         CERTIFICATE_PASSWORD: $CERTIFICATE_PASSWORD
         BASE64_PROVISIONING_PROFILE: $BASE64_PROVISIONING_PROFILE
 
-        APP_STORE_CONNECT_PRIVATE_KEY: $APP_STORE_CONNECT_PRIVATE_KEY
-        APP_STORE_CONNECT_ISSUER_ID: $APP_STORE_CONNECT_ISSUER_ID
-        APP_STORE_CONNECT_KEY_IDENTIFIER: $APP_STORE_CONNECT_KEY_IDENTIFIER
+#        APP_STORE_CONNECT_PRIVATE_KEY: $APP_STORE_CONNECT_PRIVATE_KEY
+#        APP_STORE_CONNECT_ISSUER_ID: $APP_STORE_CONNECT_ISSUER_ID
+#        APP_STORE_CONNECT_KEY_IDENTIFIER: $APP_STORE_CONNECT_KEY_IDENTIFIER
 
   artifacts:
     #- &ipa_file build/ios/ipa/*.ipa
@@ -112,15 +112,15 @@ definitions:
         echo "*********** IOS Keystore ***********"
         echo "APNS_KEY_ID: $APNS_KEY_ID"
         echo "APNS_TEAM_ID: $APNS_TEAM_ID"
-        echo "APNS_AUTH_KEY_URL: $APNS_AUTH_KEY_URL"
+        echo "BASE64_APNS_KEY: $BASE64_APNS_KEY"
         
         echo "BASE64_P12: $BASE64_P12"
         echo "CERTIFICATE_PASSWORD: $CERTIFICATE_PASSWORD"
         echo "BASE64_PROVISIONING_PROFILE: $BASE64_PROVISIONING_PROFILE"
         
-        echo "APP_STORE_CONNECT_PRIVATE_KEY: $APP_STORE_CONNECT_PRIVATE_KEY"
-        echo "APP_STORE_CONNECT_ISSUER_ID: $APP_STORE_CONNECT_ISSUER_ID"
-        echo "APP_STORE_CONNECT_KEY_IDENTIFIER: $APP_STORE_CONNECT_KEY_IDENTIFIER"
+#        echo "APP_STORE_CONNECT_PRIVATE_KEY: $APP_STORE_CONNECT_PRIVATE_KEY"
+#        echo "APP_STORE_CONNECT_ISSUER_ID: $APP_STORE_CONNECT_ISSUER_ID"
+#        echo "APP_STORE_CONNECT_KEY_IDENTIFIER: $APP_STORE_CONNECT_KEY_IDENTIFIER"
         
         echo "*********** Firebase Android config file ***********"
         echo "firebase_config_android: $firebase_config_android"
@@ -766,9 +766,11 @@ definitions:
               echo "⚠️ Package.resolved not found. Firebase SDK must be added manually in Xcode."
             fi
 
-            if [ -n "$APNS_AUTH_KEY_URL" ]; then
-              wget -O firebase/ios/AuthKey.p8 "$APNS_AUTH_KEY_URL"
-              echo "📥 Downloaded AuthKey.p8 for APNs"
+             if [ -n "$BASE64_APNS_KEY" ]; then
+              echo "$BASE64_APNS_KEY" | base64 --decode > firebase/ios/AuthKey.p8
+              echo "📥 Decoded AuthKey.p8 for APNs"
+            else
+              echo "⚠️ BASE64_APNS_KEY is not set. Skipping APNs AuthKey setup."
             fi
 
             if grep -q "aps-environment" ios/Runner/Runner.entitlements; then
@@ -776,6 +778,7 @@ definitions:
             else
               echo "⚠️ Warning: Missing APNs entitlement in Runner.entitlements."
             fi
+
           else
             echo "🚫 PUSH_NOTIFY is false. Skipping Firebase push notification setup for iOS."
             rm -f ios/Runner/GoogleService-Info.plist
