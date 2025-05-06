@@ -1118,6 +1118,24 @@ workflows:
       - *Update_SDK_Version
       - *Validate_variables
       - *manual_code_sign
+      - name: ⚙️ Set manual code signing settings in Xcode project
+        script: |
+            echo "⚙️ Setting manual code signing in Xcode project..."
+            PROJECT_FILE="ios/Runner.xcodeproj/project.pbxproj"
+            PROFILE_UUID=$(grep -aA1 UUID profiles/profile.mobileprovision | grep -Eo "[-A-F0-9]{36}")
+            
+            if [ -z "$PROFILE_UUID" ]; then
+              echo "❌ Could not extract UUID from provisioning profile."
+              exit 1
+            fi
+            
+            echo "ℹ️ Using provisioning profile UUID: $PROFILE_UUID"
+            
+            sed -i '' "s/DEVELOPMENT_TEAM = .*/DEVELOPMENT_TEAM = $APNS_TEAM_ID;/g" "$PROJECT_FILE"
+            sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = .*/PROVISIONING_PROFILE_SPECIFIER = \"\";/g" "$PROJECT_FILE"
+            sed -i '' "s/PROVISIONING_PROFILE = .*/PROVISIONING_PROFILE = \"$PROFILE_UUID\";/g" "$PROJECT_FILE"
+            
+            echo "✅ Manual signing configuration applied."
 
       - name: 📄 Inject entitlements for APNs
         script: |
