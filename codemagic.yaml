@@ -1210,21 +1210,22 @@ workflows:
 
       - name: 📦 Export .ipa from Xcode archive
         script: |
-                    echo "📦 Exporting IPA from Xcode archive..."
-          
-                    PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" /dev/stdin <<< "$(security cms -D -i profiles/profile.mobileprovision)")
-          
-                    cat > ExportOptions.plist <<EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
+            echo "📦 Exporting IPA from Xcode archive..."
+            
+            PROFILE_NAME=$(grep -a -A1 "<key>Name</key>" profiles/profile.mobileprovision | grep -a "<string>" | sed -E 's/.*<string>(.*)<\/string>.*/\1/')
+            echo "ℹ️ Extracted provisioning profile name: $PROFILE_NAME"
+            
+            cat > ExportOptions.plist <<EOF
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+            <plist version="1.0">
+            <dict>
             <key>method</key>
             <string>app-store</string>
             <key>provisioningProfiles</key>
             <dict>
-              <key>$BUNDLE_ID</key>
-              <string>$PROFILE_NAME</string>
+            <key>$BUNDLE_ID</key>
+            <string>$PROFILE_NAME</string>
             </dict>
             <key>signingCertificate</key>
             <string>Apple Distribution</string>
@@ -1236,16 +1237,16 @@ workflows:
             <true/>
             <key>destination</key>
             <string>export</string>
-          </dict>
-          </plist>
-          EOF
-          
-                    xcodebuild -exportArchive \
-                      -archivePath build/ios/archive/Runner.xcarchive \
-                      -exportOptionsPlist ExportOptions.plist \
-                      -exportPath build/ios/ipa
-          
-                    echo "✅ Export complete!"
+            </dict>
+            </plist>
+            EOF
+            
+            xcodebuild -exportArchive \
+            -archivePath build/ios/archive/Runner.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath build/ios/ipa
+            
+            echo "✅ Export complete!"
     artifacts:
       - *ios_app
       - flutter_build.log
