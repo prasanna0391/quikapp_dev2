@@ -1192,6 +1192,43 @@ workflows:
 
       - *install_CocoaPods
       - *build_ipa
+      - name: 📦 Export .ipa from Xcode archive
+        script: |
+          echo "📦 Exporting IPA from Xcode archive..."
+
+          cat > ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>$BUNDLE_ID</key>
+              <string>Your_Provisioning_Profile_Name</string>
+            </dict>
+            <key>signingCertificate</key>
+            <string>Apple Distribution</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>stripSwiftSymbols</key>
+            <true/>
+            <key>compileBitcode</key>
+            <true/>
+            <key>destination</key>
+            <string>export</string>
+          </dict>
+          </plist>
+          EOF
+
+          xcodebuild -exportArchive \
+            -archivePath build/ios/archive/Runner.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath build/ios/ipa
+
+          echo "✅ Export complete!"
+
     artifacts:
       - *ios_app
       - flutter_build.log
