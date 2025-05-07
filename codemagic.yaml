@@ -30,7 +30,6 @@ definitions:
         APNS_TEAM_ID: $APNS_TEAM_ID
         BASE64_APNS_KEY: $BASE64_APNS_KEY
         PKG_NAME: $PKG_NAME
-        BUNDLE_ID: $PKG_NAME
         EMAIL_ID: $EMAIL_ID
         PUSH_NOTIFY: $PUSH_NOTIFY
         IS_CAMERA: $IS_CAMERA
