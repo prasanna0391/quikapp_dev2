@@ -489,7 +489,52 @@ definitions:
             echo "🧹 Cleaned up Firebase iOS config."
           fi
 
+    - &Firebase_iOS_Setup
+      name: 🔔 Setup Firebase for iOS Push Notifications
+      script: |
+        if [ "$PUSH_NOTIFY" = "true" ]; then
+          echo "🔔 Enabling Firebase Push Notifications for iOS..."
 
+          mkdir -p firebase/ios
+          if [ -n "$firebase_config_ios" ]; then
+            wget -O firebase/ios/GoogleService-Info.plist "$firebase_config_ios"
+          fi
+
+          if [ -f "firebase/ios/GoogleService-Info.plist" ]; then
+            cp firebase/ios/GoogleService-Info.plist ios/Runner/GoogleService-Info.plist
+            echo "✅ GoogleService-Info.plist copied."
+          else
+            echo "❌ Missing GoogleService-Info.plist. Cannot proceed with Firebase setup."
+            exit 1
+          fi
+
+          if [ -f "firebase/ios/Package.resolved" ]; then
+            mkdir -p ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+            cp firebase/ios/Package.resolved ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+            echo "📦 Firebase SDK resolved from committed Package.resolved."
+          else
+            echo "⚠️ Package.resolved not found. Firebase SDK must be added manually in Xcode."
+          fi
+
+          if [ -n "$BASE64_APNS_KEY" ]; then
+            echo "$BASE64_APNS_KEY" | base64 --decode > firebase/ios/AuthKey.p8
+            echo "📥 Decoded AuthKey.p8 for APNs"
+          else
+            echo "⚠️ BASE64_APNS_KEY is not set. Skipping APNs AuthKey setup."
+          fi
+
+          if grep -q "aps-environment" ios/Runner/Runner.entitlements; then
+            echo "✅ APNs entitlements already enabled."
+          else
+            echo "⚠️ Warning: Missing APNs entitlement in Runner.entitlements."
+          fi
+
+        else
+          echo "🚫 PUSH_NOTIFY is false. Skipping Firebase push notification setup for iOS."
+          rm -f ios/Runner/GoogleService-Info.plist
+          rm -f ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+          echo "🧹 Cleaned up Firebase iOS config."
+        fi
     - &get_json
       name: Get JSON file
       script: |
@@ -1174,7 +1219,8 @@ workflows:
       - *Set_manual_setting_Xcode
       - *manual_code_sign
       - *Ensure_entitlements
-      - *Inject_Firebase_iOS_Push
+      - *Firebase_iOS_Setup
+#      - *Inject_Firebase_iOS_Push
       - *Update_Target_Version
       - *Set_Target_Dep_Xcode
       - *install_CocoaPods
