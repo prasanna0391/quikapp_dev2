@@ -1245,7 +1245,7 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
-      vars:
+
 
     scripts:
       - *debug_env
