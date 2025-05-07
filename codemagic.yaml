@@ -30,6 +30,7 @@ definitions:
         APNS_TEAM_ID: $APNS_TEAM_ID
         BASE64_APNS_KEY: $BASE64_APNS_KEY
         PKG_NAME: $PKG_NAME
+        BUNDLE_ID: $BUNDLE_ID
         EMAIL_ID: $EMAIL_ID
         PUSH_NOTIFY: $PUSH_NOTIFY
         IS_CAMERA: $IS_CAMERA
@@ -100,6 +101,7 @@ definitions:
         echo "VERSION_NAME: $VERSION_NAME"           
         echo "VERSION_CODE: $VERSION_CODE" 
         echo "PKG_NAME: $PKG_NAME"
+        echo "BUNDILE_ID: $PKG_NAME"
         
         echo "*********** Android Keystore ***********"
         echo "KEY_STORE: $KEY_STORE"
@@ -833,46 +835,39 @@ definitions:
     - &set_Bundle_ID
       name: 🛠 Set bundle identifier in Xcode project
       script: |
-        # Default values
-        VERSION_NAME="${VERSION_NAME:-1.0.0}"
-        VERSION_CODE="${VERSION_CODE:-100}"
-        # Check if VERSION_NAME is empty or not set
-        if [ -z "$VERSION_NAME" ]; then
-        VERSION_NAME=$DEFAULT_VERSION_NAME
-        echo "🔢 Setting DEFAULT_VERSION_NAME"
-        fi
-        
-        # Check if VERSION_CODE is empty or not set
-        if [ -z "$VERSION_CODE" ]; then
-        VERSION_CODE=$DEFAULT_VERSION_CODE
-        echo "🔢 Setting DEFAULT_VERSION_CODE"
-        fi
+        # ───── Default values if not set ─────
+          DEFAULT_VERSION_NAME="1.0.0"
+          DEFAULT_VERSION_CODE="100"
+          DEFAULT_BUNDLE_ID="com.example.app"
+          
+          VERSION_NAME="${VERSION_NAME:-$DEFAULT_VERSION_NAME}"
+          VERSION_CODE="${VERSION_CODE:-$DEFAULT_VERSION_CODE}"
+          BUNDLE_ID="${BUNDLE_ID:-$DEFAULT_BUNDLE_ID}"
         
         echo "🔢 VERSION_NAME: $VERSION_NAME"
         echo "🔢 VERSION_CODE: $VERSION_CODE"
-        echo "🔄 Updating version to ${VERSION_NAME}+${VERSION_CODE}"
+          echo "🔄 Updating version to ${VERSION_NAME}+${VERSION_CODE}"
         
-        # ───── pubspec.yaml ─────
+        # ───── Update pubspec.yaml ─────
         sed -i'' -e "s/^version: .*/version: ${VERSION_NAME}+${VERSION_CODE}/" pubspec.yaml
-        echo "✅ Updated pubspec.yaml"
-        
-          echo "🍏 Updating iOS version info in project.pbxproj..."
-        IOS_PROJECT_FILE="ios/Runner.xcodeproj/project.pbxproj"
-        
-        
-        if [ -f "$IOS_PROJECT_FILE" ]; then
+          echo "✅ Updated pubspec.yaml"
+          
+          # ───── iOS version info (MARKETING_VERSION & CURRENT_PROJECT_VERSION) ─────
+          IOS_PROJECT_FILE="ios/Runner.xcodeproj/project.pbxproj"
+          if [ -f "$IOS_PROJECT_FILE" ]; then
+          echo "🍏 Updating iOS version info in $IOS_PROJECT_FILE..."
           sed -i'' -e "s/MARKETING_VERSION = .*;/MARKETING_VERSION = ${VERSION_NAME};/" "$IOS_PROJECT_FILE"
           sed -i'' -e "s/CURRENT_PROJECT_VERSION = .*;/CURRENT_PROJECT_VERSION = ${VERSION_CODE};/" "$IOS_PROJECT_FILE"
-          echo "✅ iOS version updated: $VERSION_NAME ($VERSION_CODE)"
-        else
+        echo "✅ iOS version updated: $VERSION_NAME ($VERSION_CODE)"
+          else
           echo "❌ iOS project file not found at $IOS_PROJECT_FILE"
           exit 1
-        fi
-        
-        
-            echo "🛠 Updating bundle identifier to $BUNDLE_ID..."
-            sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;/g" ios/Runner.xcodeproj/project.pbxproj
-            echo "✅ Bundle identifier updated."
+          fi
+          
+          # ───── Bundle ID ─────
+          echo "🛠 Updating bundle identifier to $BUNDLE_ID..."
+          sed -i'' "s/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;/g" "$IOS_PROJECT_FILE"
+          echo "✅ Bundle identifier updated to $BUNDLE_ID"
 
     - &Set_manual_setting_Xcode
       name: ⚙️ Set manual code signing settings in Xcode project
@@ -952,7 +947,9 @@ definitions:
       name: 📦 Build Xcode archive
       script: |
         echo "📦 Building Xcode archive..."
-
+        echo "PKG_NAME: $PKG_NAME"
+        echo "BUNDILE_ID: $BUNDLE_ID"
+        
         mkdir -p build
 
         # Decode the provisioning profile
@@ -1249,7 +1246,7 @@ workflows:
       xcode: latest
       cocoapods: default
       vars:
-        BUNDLE_ID: $PKG_NAME
+
     scripts:
       - *debug_env
       - *install_CocoaPods
