@@ -990,6 +990,7 @@ definitions:
     - &Validate_variables
         name: ✅ Validate required environment variables
         script: |
+          
               REQUIRED_VARS=(
                       BUNDLE_ID
                       APNS_TEAM_ID
@@ -1204,6 +1205,8 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
+      vars:
+        BUNDLE_ID: $PKG_NAME
     scripts:
       - *change_proj_name
       - *debug_env
