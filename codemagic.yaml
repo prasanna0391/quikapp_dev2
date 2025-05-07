@@ -834,6 +834,43 @@ definitions:
     - &set_Bundle_ID
       name: 🛠 Set bundle identifier in Xcode project
       script: |
+        # Default values
+        VERSION_NAME="${VERSION_NAME:-1.0.0}"
+        VERSION_CODE="${VERSION_CODE:-100}"
+        # Check if VERSION_NAME is empty or not set
+        if [ -z "$VERSION_NAME" ]; then
+        VERSION_NAME=$DEFAULT_VERSION_NAME
+        echo "🔢 Setting DEFAULT_VERSION_NAME"
+        fi
+        
+        # Check if VERSION_CODE is empty or not set
+        if [ -z "$VERSION_CODE" ]; then
+        VERSION_CODE=$DEFAULT_VERSION_CODE
+        echo "🔢 Setting DEFAULT_VERSION_CODE"
+        fi
+        
+        echo "🔢 VERSION_NAME: $VERSION_NAME"
+        echo "🔢 VERSION_CODE: $VERSION_CODE"
+        echo "🔄 Updating version to ${VERSION_NAME}+${VERSION_CODE}"
+        
+        # ───── pubspec.yaml ─────
+        sed -i'' -e "s/^version: .*/version: ${VERSION_NAME}+${VERSION_CODE}/" pubspec.yaml
+        echo "✅ Updated pubspec.yaml"
+        
+          echo "🍏 Updating iOS version info in project.pbxproj..."
+        IOS_PROJECT_FILE="ios/Runner.xcodeproj/project.pbxproj"
+        
+        
+        if [ -f "$IOS_PROJECT_FILE" ]; then
+          sed -i'' -e "s/MARKETING_VERSION = .*;/MARKETING_VERSION = ${VERSION_NAME};/" "$IOS_PROJECT_FILE"
+          sed -i'' -e "s/CURRENT_PROJECT_VERSION = .*;/CURRENT_PROJECT_VERSION = ${VERSION_CODE};/" "$IOS_PROJECT_FILE"
+          echo "✅ iOS version updated: $VERSION_NAME ($VERSION_CODE)"
+        else
+          echo "❌ iOS project file not found at $IOS_PROJECT_FILE"
+          exit 1
+        fi
+        
+        
             echo "🛠 Updating bundle identifier to $BUNDLE_ID..."
             sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;/g" ios/Runner.xcodeproj/project.pbxproj
             echo "✅ Bundle identifier updated."
@@ -1208,11 +1245,11 @@ workflows:
       vars:
         BUNDLE_ID: $PKG_NAME
     scripts:
-      - *change_proj_name
       - *debug_env
+      - *install_CocoaPods
+      - *change_proj_name
       - *Validate_variables
       - *change_app_name
-      - *update_package_names
       - *set_Bundle_ID
       - *Update_App_Version
       - *get_logo
@@ -1220,13 +1257,11 @@ workflows:
       - *get_splash
       - *Update_SDK_Version
       - *Set_manual_setting_Xcode
-      - *manual_code_sign
-      - *Ensure_entitlements
       - *Firebase_iOS_Setup
-#      - *Inject_Firebase_iOS_Push
       - *Update_Target_Version
       - *Set_Target_Dep_Xcode
-      - *install_CocoaPods
+      - *manual_code_sign
+      - *Ensure_entitlements
       - *Build_Xcode_archive
       - *Export_ipa_from_Archive
     artifacts:
