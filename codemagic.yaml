@@ -1169,7 +1169,8 @@ workflows:
       - *get_splash
       - *Update_SDK_Version
       - *Set_manual_setting_Xcode
-      - *manual_code_sign
+      - *autosigncode
+#      - *manual_code_sign
       - *Ensure_entitlements
       - *Inject_Firebase_iOS_Push
       - *Update_Target_Version
