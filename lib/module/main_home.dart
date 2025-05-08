@@ -113,7 +113,6 @@ class _MainHomeState extends State<MainHome> {
     if (isBottomMenu == true) {
       try {
         bottomMenuItems = widget.bottomMenuItems;
-        // bottomMenuItems = List<Map<String, dynamic>>.from(json.decode(bottomMenuRaw));
       } catch (e) {
         if (kDebugMode) {
           print("Invalid bottom menu JSON: $e");
