@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
+
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -13,11 +13,11 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:uni_links3/uni_links.dart';
 
 import '../config/env_config.dart';
-import '../main.dart';
-import '../services/notification_service.dart';
 
+import '../services/notification_service.dart';
 
 class MainHome extends StatefulWidget {
   final String webUrl;
@@ -65,6 +65,11 @@ class _MainHomeState extends State<MainHome> {
   final urlController = TextEditingController();
   DateTime? _lastBackPressed;
   String? _pendingInitialUrl; // 🔹 NEW
+  StreamSubscription? _linkSub;
+  String myDomain = "";
+  bool _initialUriIsHandled = false;
+
+  // String? _pendingInitialUrl;
 
   InAppWebViewSettings settings = InAppWebViewSettings(
     isInspectable: kDebugMode,
@@ -103,6 +108,7 @@ class _MainHomeState extends State<MainHome> {
     if (pushNotify == true) {
       setupFirebaseMessaging();
     }
+
     isBottomMenu = widget.isBottomMenu;
     if (isBottomMenu == true) {
       try {
@@ -159,7 +165,65 @@ class _MainHomeState extends State<MainHome> {
         await _showLocalNotification(message);
       }
     });
+    Uri parsedUri = Uri.parse(widget.webUrl);
+    myDomain = parsedUri.host;
+    if (myDomain.startsWith('www.')) {
+      myDomain = myDomain.substring(4);
+    }
+    if (widget.isDeeplink == true) {
+
+      _handleInitialUri();
+      _handleIncomingLinks();
+    }
+    // else {
+    // FirebaseMessaging.instance.getInitialMessage().then((message) async {
+    // if (message != null) {
+    // final internalUrl = message.data['url'];
+    // if (internalUrl != null && internalUrl.isNotEmpty) {
+    // _pendingInitialUrl = internalUrl;
+    // }
+    // await _showLocalNotification(message);
+    // }
+    // });
+    // }
   }
+
+  void _handleIncomingLinks() {
+    if (!kIsWeb) {
+      _linkSub = uriLinkStream.listen((Uri? uri) {
+        if (!mounted) return;
+        if (uri != null && uri.host.contains(myDomain)) {
+          webViewController?.loadUrl(urlRequest: URLRequest(url: WebUri(uri.toString())));
+        }
+      }, onError: (Object err) {
+        if (!mounted) return;
+        debugPrint("Incoming URI error: $err");
+      });
+    }
+  }
+
+  Future<void> _handleInitialUri() async {
+
+    if (!_initialUriIsHandled) {
+      _initialUriIsHandled = true;
+      try {
+        final uri = await getInitialUri();
+        if (uri != null && uri.host.contains(myDomain)) {
+          _pendingInitialUrl = uri.toString();
+        }
+      } catch (e) {
+        debugPrint("Initial URI error: $e");
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _linkSub?.cancel();
+    urlController.dispose();
+    super.dispose();
+  }
+
 
   IconData _getIconByName(String? name) {
     if (name == null || name.trim().isEmpty) {
@@ -402,7 +466,9 @@ class _MainHomeState extends State<MainHome> {
                         },
                         shouldOverrideUrlLoading: (controller, navigationAction) async {
                           final uri = navigationAction.request.url;
-                          if (uri != null && !uri.toString().contains(widget.webUrl)) {
+                          // if (uri != null && !uri.toString().contains(widget.webUrl)) {
+                            if (uri != null && !uri.host.contains(myDomain)) {
+
                             if (widget.isDeeplink) {
                               if (await canLaunchUrl(uri)) {
                                 await launchUrl(uri, mode: LaunchMode.externalApplication);
