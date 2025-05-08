@@ -50,6 +50,7 @@ definitions:
         BOTTOMMENU_ICON_POSITION: $BOTTOMMENU_ICON_POSITION
         BOTTOMMENU_VISIBLE_ON: $BOTTOMMENU_VISIBLE_ON
         IS_DEEPLINK: $IS_DEEPLINK
+        IS_LOAD_IND: $IS_LOAD_IND
         flutter_build_flags: >
           --dart-define=WEB_URL="$WEB_URL"
           --dart-define=PUSH_NOTIFY="$PUSH_NOTIFY"
@@ -119,15 +120,7 @@ definitions:
         failure: true
 
   scripts:
-    - &pub_get
-      name: Get packages
-      script: |
-        flutter pub get
-    - &Configure_Firebase_for_iOS
-      name: Configure Firebase for iOS
-      script: |
-          chmod +x ./scripts/firebase_ios_setup.sh
-          ./scripts/firebase_ios_setup.sh
+
 
     - &debug_env
       name: Debug Environment Variables
@@ -139,6 +132,16 @@ definitions:
         echo "VERSION_NAME: $VERSION_NAME"           
         echo "VERSION_CODE: $VERSION_CODE" 
         echo "PKG_NAME: $PKG_NAME"
+        
+        echo "*********** App Customization Configuration ***********"
+        echo "Splash screen: $IS_SPLASH"
+        echo "Pull to refresh: $IS_PULLDOWN"
+        echo "Loading indicators: $IS_LOAD_IND"
+        echo "Bottom navigation bar: $IS_BOTTOMMENU"
+        echo "Deep linking: $IS_DEEPLINK"
+        
+        echo "*********** Push Notification Configuration ***********"
+        echo "PUSH_NOTIFY: $PUSH_NOTIFY"
         
         echo "*********** Android Keystore ***********"
         echo "KEY_STORE: $KEY_STORE"
@@ -158,7 +161,6 @@ definitions:
         echo "firebase_config_ios: $firebase_config_ios"
         
         echo "*********** Splash Configuration ***********"
-        echo "IS_SPLASH: $IS_SPLASH"
         echo "SPLASH: $SPLASH"
         echo "SPLASH_BG:$SPLASH_BG"
         echo "SPLASH_BG_COLOR: $SPLASH_BG_COLOR"
@@ -166,12 +168,8 @@ definitions:
         echo "SPLASH_TAGLINE_COLOR: $SPLASH_TAGLINE_COLOR"
         echo "SPLASH_ANIMATION: $SPLASH_ANIMATION"
         echo "SPLASH_DURATION: $SPLASH_DURATION"
-        
-        echo "*********** Push Notification Configuration ***********"
-        echo "PUSH_NOTIFY: $PUSH_NOTIFY"
-        
+                
         echo "*********** Bottom Navigation Configuration ***********"
-        echo "IS_BOTTOMMENU: $IS_BOTTOMMENU"
         echo "BOTTOMMENU_ITEMS: $BOTTOMMENU_ITEMS"
         echo "BOTTOMMENU_BG_COLOR: $BOTTOMMENU_BG_COLOR"  
         echo "BOTTOMMENU_ICON_COLOR: $BOTTOMMENU_ICON_COLOR"
@@ -192,11 +190,6 @@ definitions:
         echo "*********** Publish Configuration ***********"
         echo "EMAIL_ID: $EMAIL_ID"
         
-        echo "*********** Pull Down to Refresh Configuration ***********"
-        echo "IS_PULLDOWN: $IS_PULLDOWN"
-        
-        echo "*********** DEEPLINK Configuration ***********"
-        echo "IS_DEEPLINK: $IS_DEEPLINK"
 
 
     - &get_splash
@@ -246,51 +239,8 @@ definitions:
 
 
 
-    - &update_sdkver
-      name: Updating SDK version
-      script: |
-        if [ "$PUSH_NOTIFY" = "true" ]; then
-          echo "🔧 Updating minSdkVersion and targetSdkVersion..."
 
-          # Make sure to handle in-place edit properly for both macOS and Linux
-          sed -i.bak 's/minSdkVersion\s*=.*$/minSdkVersion 21/' android/app/build.gradle
-          sed -i.bak 's/targetSdkVersion\s*=.*$/targetSdkVersion 34/' android/app/build.gradle
-
-          echo "✅ SDK versions updated"
-        else
-          echo "🚫 Firebase config skipped (PUSH_NOTIFY is not true)"
-        fi
-
-
-    - &build_app
-      name: Building App with Feature Flags
-      script: |
-          echo "✅ Start Building APK...."
-          flutter clean
-          flutter pub get
-          flutter build apk --release \
-              --dart-define=WEB_URL="$WEB_URL" \
-              --dart-define=PUSH_NOTIFY="$PUSH_NOTIFY" \
-              --dart-define=IS_SPLASH="$IS_SPLASH" \
-              --dart-define=SPLASH="$SPLASH" \
-              --dart-define=SPLASH_BG="$SPLASH_BG" \
-              --dart-define=SPLASH_ANIMATION="$SPLASH_ANIMATION" \
-              --dart-define=SPLASH_BG_COLOR="$SPLASH_BG_COLOR" \
-              --dart-define=SPLASH_TAGLINE="$SPLASH_TAGLINE" \
-              --dart-define=SPLASH_TAGLINE_COLOR="$SPLASH_TAGLINE_COLOR" \
-              --dart-define=SPLASH_DURATION="$SPLASH_DURATION" \
-              --dart-define=IS_PULLDOWN="$IS_PULLDOWN" \
-              --dart-define=IS_CAMERA="$IS_CAMERA" \
-              --dart-define=IS_LOCATION="$IS_LOCATION" \
-              --dart-define=IS_MIC="$IS_MIC" \
-              --dart-define=IS_NOTIFICATION="$IS_NOTIFICATION" \
-              --dart-define=IS_CONTACT="$IS_CONTACT" \
-              --dart-define=IS_SMS="$IS_SMS" \
-              --dart-define=IS_PHONE="$IS_PHONE" \
-              --dart-define=IS_BLUETOOTH="$IS_BLUETOOTH" > flutter_build.log
-              echo "✅ Build APK Compleated...."
-         
-              
+   
 
     - &change_proj_name
       name: Change Project Name
@@ -764,6 +714,7 @@ definitions:
           --dart-define=BOTTOMMENU_ICON_POSITION="$BOTTOMMENU_ICON_POSITION" \
           --dart-define=BOTTOMMENU_VISIBLE_ON="$BOTTOMMENU_VISIBLE_ON" \
           --dart-define=IS_DEEPLINK="$IS_DEEPLINK" \
+          --dart-define=IS_LOAD_IND="$IS_LOAD_IND" \
           --dart-define=IS_CAMERA="$IS_CAMERA" \
           --dart-define=IS_LOCATION="$IS_LOCATION" \
           --dart-define=IS_BIOMETRIC="$IS_BIOMETRIC" \
@@ -850,6 +801,7 @@ definitions:
             --dart-define=BOTTOMMENU_ICON_POSITION="$BOTTOMMENU_ICON_POSITION" \
             --dart-define=BOTTOMMENU_VISIBLE_ON="$BOTTOMMENU_VISIBLE_ON" \
             --dart-define=IS_DEEPLINK="$IS_DEEPLINK" \
+            --dart-define=IS_LOAD_IND="$IS_LOAD_IND" \
             --dart-define=IS_CAMERA="$IS_CAMERA" \
             --dart-define=IS_LOCATION="$IS_LOCATION" \
             --dart-define=IS_BIOMETRIC="$IS_BIOMETRIC" \

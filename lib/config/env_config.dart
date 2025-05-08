@@ -45,6 +45,8 @@ const String logoUrl = String.fromEnvironment('LOGO_URL');
 // Deep linking
 const bool isDeepLink = bool.fromEnvironment('IS_DEEPLINK', defaultValue: false);
 
+const bool isLoadIndicator = bool.fromEnvironment('IS_LOAD_IND', defaultValue: true);
+
 // Permissions
 const bool isCameraEnabled = bool.fromEnvironment('IS_CAMERA', defaultValue: false);
 const bool isLocationEnabled = bool.fromEnvironment('IS_LOCATION', defaultValue: false);

@@ -30,7 +30,8 @@ class MainHome extends StatefulWidget {
   final iconColor;
   final iconPosition;
   final taglineColor;
-  const MainHome({super.key, required this.webUrl, required this.isBottomMenu, required this.bottomMenuItems, required this.isDeeplink, required this.backgroundColor, required this.activeTabColor, required this.textColor, required this.iconColor, required this.iconPosition, required this.taglineColor});
+  final isLoadIndicator;
+  const MainHome({super.key, required this.webUrl, required this.isBottomMenu, required this.bottomMenuItems, required this.isDeeplink, required this.backgroundColor, required this.activeTabColor, required this.textColor, required this.iconColor, required this.iconPosition, required this.taglineColor, required this.isLoadIndicator});
 
   @override
   State<MainHome> createState() => _MainHomeState();
@@ -434,14 +435,6 @@ class _MainHomeState extends State<MainHome> {
                             }
                           }
                           return NavigationActionPolicy.ALLOW;
-
-                          // if (uri != null && !uri.toString().contains(widget.webUrl)) {
-                          //   if (await canLaunchUrl(uri)) {
-                          //     await launchUrl(uri, mode: LaunchMode.externalApplication);
-                          //     return NavigationActionPolicy.CANCEL;
-                          //   }
-                          // }
-                          // return NavigationActionPolicy.ALLOW;
                         },
                         onLoadStart: (controller, url) {
                           setState(() {
@@ -472,7 +465,7 @@ class _MainHomeState extends State<MainHome> {
                       ),
 
                     // Loading Indicator
-                    if (isLoading)
+                    if (widget.isLoadIndicator && isLoading)
                       const Center(child: CircularProgressIndicator()),
 
                     // Error Screen

@@ -71,6 +71,7 @@ void main() async {
     textColor: bottomMenuTextColor,
     iconColor: bottomMenuIconColor,
     iconPosition: bottomMenuIconPosition,
+    isLoadIndicator: isLoadIndicator,
 
 
   ));

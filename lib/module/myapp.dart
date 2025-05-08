@@ -21,8 +21,9 @@ class MyApp extends StatefulWidget {
   final iconPosition;
   final taglineColor;
   final spbgColor;
+  final isLoadIndicator;
   final List<Map<String, dynamic>> bottomMenuItems;
-  const MyApp({super.key, required this.webUrl, required this.isBottomMenu, required this.isSplash, required this.splashLogo, required this.splashBg, required this.splashDuration, required this.splashAnimation, required this.bottomMenuItems, required this.isDeeplink, required this.backgroundColor, required this.activeTabColor, required this.textColor, required this.iconColor, required this.iconPosition, required this.taglineColor, required this.spbgColor});
+  const MyApp({super.key, required this.webUrl, required this.isBottomMenu, required this.isSplash, required this.splashLogo, required this.splashBg, required this.splashDuration, required this.splashAnimation, required this.bottomMenuItems, required this.isDeeplink, required this.backgroundColor, required this.activeTabColor, required this.textColor, required this.iconColor, required this.iconPosition, required this.taglineColor, required this.spbgColor, required this.isLoadIndicator});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -49,7 +50,7 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       home: showSplash
           ? SplashScreen(splashLogo: widget.splashLogo, splashBg: widget.splashBg, splashAnimation: widget.splashAnimation, spbgColor: widget.spbgColor, taglineColor: widget.taglineColor,)
-          : MainHome(webUrl: widget.webUrl, isBottomMenu: widget.isBottomMenu, bottomMenuItems: widget.bottomMenuItems, isDeeplink: widget.isDeeplink, backgroundColor: widget.backgroundColor, activeTabColor: widget.activeTabColor, textColor: widget.textColor, iconColor: widget.iconColor, iconPosition: widget.iconPosition, taglineColor: widget.taglineColor,),
+          : MainHome(webUrl: widget.webUrl, isBottomMenu: widget.isBottomMenu, bottomMenuItems: widget.bottomMenuItems, isDeeplink: widget.isDeeplink, backgroundColor: widget.backgroundColor, activeTabColor: widget.activeTabColor, textColor: widget.textColor, iconColor: widget.iconColor, iconPosition: widget.iconPosition, taglineColor: widget.taglineColor, isLoadIndicator: widget.isLoadIndicator,),
     );
   }
 }
