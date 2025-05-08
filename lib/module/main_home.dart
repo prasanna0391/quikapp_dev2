@@ -13,7 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:uni_links3/uni_links.dart';
+
 
 import '../config/env_config.dart';
 
@@ -170,59 +170,9 @@ class _MainHomeState extends State<MainHome> {
     if (myDomain.startsWith('www.')) {
       myDomain = myDomain.substring(4);
     }
-    // if (widget.isDeeplink == true) {
-    //
-    //   _handleInitialUri();
-    //   _handleIncomingLinks();
-    // }
-    // else {
-    // FirebaseMessaging.instance.getInitialMessage().then((message) async {
-    // if (message != null) {
-    // final internalUrl = message.data['url'];
-    // if (internalUrl != null && internalUrl.isNotEmpty) {
-    // _pendingInitialUrl = internalUrl;
-    // }
-    // await _showLocalNotification(message);
-    // }
-    // });
-    // }
   }
 
-  // void _handleIncomingLinks() {
-  //   if (!kIsWeb) {
-  //     _linkSub = uriLinkStream.listen((Uri? uri) {
-  //       if (!mounted) return;
-  //       if (uri != null && uri.host.contains(myDomain)) {
-  //         webViewController?.loadUrl(urlRequest: URLRequest(url: WebUri(uri.toString())));
-  //       }
-  //     }, onError: (Object err) {
-  //       if (!mounted) return;
-  //       debugPrint("Incoming URI error: $err");
-  //     });
-  //   }
-  // }
-  //
-  // Future<void> _handleInitialUri() async {
-  //
-  //   if (!_initialUriIsHandled) {
-  //     _initialUriIsHandled = true;
-  //     try {
-  //       final uri = await getInitialUri();
-  //       if (uri != null && uri.host.contains(myDomain)) {
-  //         _pendingInitialUrl = uri.toString();
-  //       }
-  //     } catch (e) {
-  //       debugPrint("Initial URI error: $e");
-  //     }
-  //   }
-  // }
-  //
-  // @override
-  // void dispose() {
-  //   _linkSub?.cancel();
-  //   urlController.dispose();
-  //   super.dispose();
-  // }
+
 
 
   IconData _getIconByName(String? name) {
