@@ -1429,11 +1429,11 @@ workflows:
       - *Inject_Firebase_iOS_Push
       - *Update_Target_Version
       - *install_CocoaPods
-      - *build_ipa
+#      - *build_ipa
 #      - *manual_code_sign
-#      - *Ensure_entitlements
-#      - *Build_Xcode_archive
-#      - *Export_ipa_from_Archive
+      - *Ensure_entitlements
+      - *Build_Xcode_archive
+      - *Export_ipa_from_Archive
     artifacts:
       - *ios_app
       - flutter_build2.log
