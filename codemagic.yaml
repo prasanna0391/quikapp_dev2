@@ -768,19 +768,74 @@ definitions:
         exit 1
         fi
         echo "✅ AppBundle build completed."
+
     - &key_store
       name: Setup Android keystore and insert Gradle signing block
       script: |
-        echo "✅ Downloading keystore..."
-        curl -o android/app/keystore.jks "$KEY_STORE"
-        
-        echo "✅ Writing key.properties..."
-        cat > android/key.properties <<EOF
-        storeFile=keystore.jks
-        storePassword=$CM_KEYSTORE_PASSWORD
-        keyAlias=$CM_KEY_ALIAS
-        keyPassword=$CM_KEY_PASSWORD
-        EOF
+          echo "📦 Downloading keystore..."
+          if curl -f -o android/app/keystore.jks "$KEY_STORE"; then
+            echo "✅ Keystore downloaded successfully."
+          else
+            echo "❌ Failed to download keystore."
+            exit 1
+          fi
+          
+          echo "📝 Writing key.properties..."
+          cat > android/key.properties <<EOF
+          storeFile=keystore.jks
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          keyPassword=$CM_KEY_PASSWORD
+          EOF
+          
+          if [ -f android/key.properties ]; then
+            echo "✅ key.properties written successfully."
+          else
+            echo "❌ Failed to write key.properties."
+            exit 1
+          fi
+          
+          echo "🔧 Injecting signing config into build.gradle..."
+          
+          if grep -q "signingConfigs" android/app/build.gradle; then
+            sed -i.bak '/signingConfigs {/a\
+                release {\n\
+                    storeFile file(\"keystore.jks\")\n\
+                    storePassword project.findProperty(\"storePassword\")\n\
+                    keyAlias project.findProperty(\"keyAlias\")\n\
+                    keyPassword project.findProperty(\"keyPassword\")\n\
+                }' android/app/build.gradle
+            echo "✅ Signing config injected."
+          else
+            echo "❌ Could not find signingConfigs block in build.gradle."
+            exit 1
+          fi
+          
+          if grep -q "buildTypes" android/app/build.gradle; then
+            sed -i.bak '/buildTypes {/a\
+                release {\n\
+                    signingConfig signingConfigs.release\n\
+                    shrinkResources true\n\
+                    minifyEnabled true\n\
+                    proguardFiles getDefaultProguardFile(\"proguard-android-optimize.txt\"), \"proguard-rules.pro\"\n\
+                }' android/app/build.gradle
+            echo "✅ Release build type updated."
+          else
+            echo "❌ Could not find buildTypes block in build.gradle."
+            exit 1
+          fi
+#      name: Setup Android keystore and insert Gradle signing block
+#      script: |
+#        echo "✅ Downloading keystore..."
+#        curl -o android/app/keystore.jks "$KEY_STORE"
+#
+#        echo "✅ Writing key.properties..."
+#        cat > android/key.properties <<EOF
+#        storeFile=keystore.jks
+#        storePassword=$CM_KEYSTORE_PASSWORD
+#        keyAlias=$CM_KEY_ALIAS
+#        keyPassword=$CM_KEY_PASSWORD
+#        EOF
 
 
 workflows:
