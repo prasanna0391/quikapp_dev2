@@ -52,6 +52,10 @@ definitions:
         BOTTOMMENU_VISIBLE_ON: $BOTTOMMENU_VISIBLE_ON
         IS_DEEPLINK: $IS_DEEPLINK
 
+        PROFILE_URL: $PROFILE_URL
+        CERT_URL: $CERT_URL
+        CERT_PASSWORD: $CERT_PASSWORD
+
         BASE64_P12: $BASE64_P12
         CERTIFICATE_PASSWORD: $CERTIFICATE_PASSWORD
         BASE64_PROVISIONING_PROFILE: $BASE64_PROVISIONING_PROFILE
@@ -110,6 +114,9 @@ definitions:
         echo "CM_KEY_PASSWORD: $CM_KEY_PASSWORD"
         
         echo "*********** IOS Keystore ***********"
+        echo "PROFILE_URL: $PROFILE_URL"
+        echo "CERT_URL: $CERT_URL"
+        echo "CERT_PASSWORD: $CERT_PASSWORD"
         echo "APNS_KEY_ID: $APNS_KEY_ID"
         echo "APNS_TEAM_ID: $APNS_TEAM_ID"
         echo "BASE64_APNS_KEY: $BASE64_APNS_KEY"
@@ -1195,8 +1202,78 @@ definitions:
                 --dart-define=CM_KEYSTORE_PASSWORD="$CM_KEYSTORE_PASSWORD" \
                 --dart-define=CM_KEY_ALIAS="$CM_KEY_ALIAS" \
                 --dart-define=CM_KEY_PASSWORD="$CM_KEY_PASSWORD" > flutter_build2.log
-                #--no-codesign 
                 echo "✅ IPA build completed."
+    - &Download_and_Install_Cert
+      name: Download and Install Certificate
+      script: |
+        echo "📥 Downloading .p12 certificate..."
+        CERT_URL="https://raw.githubusercontent.com/prasanna91/QuikApp/main/Pixaware_Certificates.p12"
+        CERT_PASSWORD="opeN@12345"
+
+        wget -O certs/certificate.p12 "$CERT_URL"
+
+        if [ ! -f certs/certificate.p12 ]; then
+          echo "❌ Error: Certificate download failed."
+          exit 1
+        fi
+
+        echo "📜 Installing certificate..."
+        security create-keychain -p "" build.keychain
+        security import certs/certificate.p12 -k build.keychain -P "$CERT_PASSWORD" -T /usr/bin/codesign
+        security list-keychains -s build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "" build.keychain
+
+        echo "✅ Certificate installed successfully."
+
+    - &Download_and_Install_Provisioning
+      name: Download and Install Provisioning Profile
+      script: |
+        echo "📥 Downloading provisioning profile..."
+        PROFILE_URL="https://raw.githubusercontent.com/prasanna91/QuikApp/main/Twinklub.mobileprovision"
+
+        wget -O profiles/profile.mobileprovision "$PROFILE_URL"
+
+        if [ ! -f profiles/profile.mobileprovision ]; then
+          echo "❌ Error: Provisioning profile download failed."
+          exit 1
+        fi
+
+        echo "📜 Installing provisioning profile..."
+        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+        cp profiles/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+
+        echo "✅ Provisioning profile installed successfully."
+    - &manual_code_sign
+      name: 🔏 Manual Code Signing (Conditional)
+      script: |
+          echo "🔧 Starting manual code signing..."
+          
+          if [ -n "$CERT_URL" ] && [ -n "$PROFILE_URL" ]; then
+            echo "📜 Using downloaded certificate and provisioning profile."
+            *Download_and_Install_Cert
+            *Download_and_Install_Provisioning
+          elif [ -n "$BASE64_P12" ] && [ -n "$BASE64_PROVISIONING_PROFILE" ]; then
+            echo "📥 Using Base64 encoded certificate and profile."
+            mkdir -p certs profiles
+            echo "$BASE64_P12" | base64 --decode > certs/certificate.p12
+            echo "$BASE64_PROVISIONING_PROFILE" | base64 --decode > profiles/profile.mobileprovision
+          else
+            echo "❌ Error: No certificate and provisioning profile provided."
+            exit 1
+          fi
+          
+          security create-keychain -p "" build.keychain
+          security import certs/certificate.p12 -k build.keychain -P "$CERT_PASSWORD" -T /usr/bin/codesign
+          security list-keychains -s build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+          
+          echo "📄 Installing provisioning profile..."
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp profiles/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+          
+          echo "✅ Manual code signing setup complete!"
 
     - &install_CocoaPods
         name: Install CocoaPods
@@ -1209,6 +1286,47 @@ definitions:
               pod install --repo-update
               cd ..
               echo "✅ CocoaPods installation complete!"
+    - &Download_and_Install_Cert
+      name: Download and Install Certificate
+      script: |
+                echo "📥 Downloading .p12 certificate..."
+                #CERT_URL="https://raw.githubusercontent.com/prasanna91/QuikApp/main/Pixaware_Certificates.p12"
+                #CERT_PASSWORD="opeN@12345"
+        
+                wget -O certs/certificate.p12 "$CERT_URL"
+                
+                if [ ! -f certs/certificate.p12 ]; then
+                echo "❌ Error: Certificate download failed."
+                exit 1
+                fi
+                
+                echo "📜 Installing certificate..."
+                security create-keychain -p "" build.keychain
+                security import certs/certificate.p12 -k build.keychain -P "$CERT_PASSWORD" -T /usr/bin/codesign
+                security list-keychains -s build.keychain
+                security default-keychain -s build.keychain
+                security unlock-keychain -p "" build.keychain
+                
+                echo "✅ Certificate installed successfully."
+
+    - &Download_and_Install_Provisioning
+      name: Download and Install Provisioning Profile
+      script: |
+                  echo "📥 Downloading provisioning profile..."
+                  #PROFILE_URL="https://raw.githubusercontent.com/prasanna91/QuikApp/main/Twinklub.mobileprovision"
+              
+                  wget -O profiles/profile.mobileprovision "$PROFILE_URL"
+              
+                  if [ ! -f profiles/profile.mobileprovision ]; then
+                    echo "❌ Error: Provisioning profile download failed."
+                    exit 1
+                  fi
+              
+                  echo "📜 Installing provisioning profile..."
+                  mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+                  cp profiles/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+              
+                  echo "✅ Provisioning profile installed successfully."
 workflows:
   android-workflow:
     name: Android Workflow
@@ -1251,7 +1369,7 @@ workflows:
       - *debug_env
       - *install_CocoaPods
       - *change_proj_name
-      - *Validate_variables
+#      - *Validate_variables
       - *change_app_name
       - *set_Bundle_ID
       - *Update_App_Version
@@ -1263,12 +1381,20 @@ workflows:
       - *Firebase_iOS_Setup
       - *Update_Target_Version
       - *Set_Target_Dep_Xcode
+      - *Download_and_Install_Cert
+      - *Download_and_Install_Provisioning
       - *manual_code_sign
-      - *Ensure_entitlements
-      - *Build_Xcode_archive
-      - *Export_ipa_from_Archive
+      - *Inject_Firebase_iOS_Push
+      - *Update_Target_Version
+      - *install_CocoaPods
+      - *build_ipa
+#      - *manual_code_sign
+#      - *Ensure_entitlements
+#      - *Build_Xcode_archive
+#      - *Export_ipa_from_Archive
     artifacts:
       - *ios_app
+      - flutter_build2.log
       - build/xcodebuild_archive.log
       - build/xcodebuild_export.log
     publishing:
