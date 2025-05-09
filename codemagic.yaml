@@ -1322,44 +1322,53 @@ definitions:
     - &Download_and_Install_Cert
       name: Download and Install Certificate
       script: |
-                echo "📥 Downloading .p12 certificate..."
-                #CERT_URL="https://raw.githubusercontent.com/prasanna91/QuikApp/main/Pixaware_Certificates.p12"
-                #CERT_PASSWORD="opeN@12345"
+        echo "📥 Downloading .p12 certificate..."
         
-                wget -O certs/certificate.p12 "$CERT_URL"
-                
-                if [ ! -f certs/certificate.p12 ]; then
-                echo "❌ Error: Certificate download failed."
-                exit 1
-                fi
-                
-                echo "📜 Installing certificate..."
-                security create-keychain -p "" build.keychain
-                security import certs/certificate.p12 -k build.keychain -P "$CERT_PASSWORD" -T /usr/bin/codesign
-                security list-keychains -s build.keychain
-                security default-keychain -s build.keychain
-                security unlock-keychain -p "" build.keychain
-                
-                echo "✅ Certificate installed successfully."
+        if [ -z "$CERT_URL" ]; then
+        echo "❌ Error: CERT_URL is not set."
+        exit 1
+        fi
+        
+        mkdir -p certs
+        wget -O certs/certificate.p12 "$CERT_URL"
+        
+        if [ ! -f certs/certificate.p12 ]; then
+        echo "❌ Error: Certificate download failed."
+        exit 1
+        fi
+        
+        echo "📜 Installing certificate..."
+        security create-keychain -p "" build.keychain
+        security import certs/certificate.p12 -k build.keychain -P "$CERT_PASSWORD" -T /usr/bin/codesign
+        security list-keychains -s build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "" build.keychain
+        
+        echo "✅ Certificate installed successfully."
 
     - &Download_and_Install_Provisioning
       name: Download and Install Provisioning Profile
       script: |
-                  echo "📥 Downloading provisioning profile..."
-                  #PROFILE_URL="https://raw.githubusercontent.com/prasanna91/QuikApp/main/Twinklub.mobileprovision"
-              
-                  wget -O profiles/profile.mobileprovision "$PROFILE_URL"
-              
-                  if [ ! -f profiles/profile.mobileprovision ]; then
-                    echo "❌ Error: Provisioning profile download failed."
-                    exit 1
-                  fi
-              
-                  echo "📜 Installing provisioning profile..."
-                  mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-                  cp profiles/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
-              
-                  echo "✅ Provisioning profile installed successfully."
+            echo "📥 Downloading provisioning profile..."
+            
+            if [ -z "$PROFILE_URL" ]; then
+              echo "❌ Error: PROFILE_URL is not set."
+              exit 1
+            fi
+            
+            mkdir -p profiles
+            wget -O profiles/profile.mobileprovision "$PROFILE_URL"
+            
+            if [ ! -f profiles/profile.mobileprovision ]; then
+              echo "❌ Error: Provisioning profile download failed."
+              exit 1
+            fi
+            
+            echo "📜 Installing provisioning profile..."
+            mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+            cp profiles/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+            
+            echo "✅ Provisioning profile installed successfully."
 workflows:
   android-workflow:
     name: Android Workflow
