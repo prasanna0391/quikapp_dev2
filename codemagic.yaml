@@ -795,7 +795,7 @@ definitions:
             exit 1
           fi
         
-        echo "📦 Injecting dynamic signing configs..."
+          echo "📦 Injecting dynamic signing configs..."
   
             GRADLE_FILE="android/app/build.gradle"
             SIGNING_BLOCK=$(cat <<EOF
