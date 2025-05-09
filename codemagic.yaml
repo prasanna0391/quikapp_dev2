@@ -794,37 +794,37 @@ definitions:
             echo "❌ Failed to write key.properties."
             exit 1
           fi
-        echo "✅ Injecting signingConfig to build.gradle..."
-        
-        # Insert signingConfigs.release
-        if grep -q "signingConfigs" android/app/build.gradle; then
-        sed -i.bak '/signingConfigs {/a\
-          release {\n\
-            storeFile file(\"keystore.jks\")\n\
-            storePassword project.findProperty(\"storePassword\")\n\
-            keyAlias project.findProperty(\"keyAlias\")\n\
-            keyPassword project.findProperty(\"keyPassword\")\n\
-          }' android/app/build.gradle
-        echo "✅ Signing config injected."
-        else
-        echo "❌ Could not find signingConfigs block in build.gradle."
-        exit 1
-        fi
-        
-        # Insert buildTypes.release
-        if grep -q "buildTypes" android/app/build.gradle; then
-        sed -i.bak '/buildTypes {/a\
-          release {\n\
-            signingConfig signingConfigs.release\n\
-            shrinkResources true\n\
-            minifyEnabled true\n\
-            proguardFiles getDefaultProguardFile(\"proguard-android-optimize.txt\"), \"proguard-rules.pro\"\n\
-          }' android/app/build.gradle
-        echo "✅ Release build type injected."
-        else
-        echo "❌ Could not find buildTypes block in build.gradle."
-        exit 1
-        fi
+          echo "✅ Injecting signingConfig to build.gradle..."
+          
+          # Insert signingConfigs.release
+          if grep -q "signingConfigs" android/app/build.gradle; then
+          sed -i.bak '/signingConfigs {/a\
+            release {\n\
+              storeFile file(\"keystore.jks\")\n\
+              storePassword project.findProperty(\"storePassword\")\n\
+              keyAlias project.findProperty(\"keyAlias\")\n\
+              keyPassword project.findProperty(\"keyPassword\")\n\
+            }' android/app/build.gradle
+          echo "✅ Signing config injected."
+          else
+          echo "❌ Could not find signingConfigs block in build.gradle."
+          exit 1
+          fi
+          
+          # Insert buildTypes.release
+          if grep -q "buildTypes" android/app/build.gradle; then
+          sed -i.bak '/buildTypes {/a\
+            release {\n\
+              signingConfig signingConfigs.release\n\
+              shrinkResources true\n\
+              minifyEnabled true\n\
+              proguardFiles getDefaultProguardFile(\"proguard-android-optimize.txt\"), \"proguard-rules.pro\"\n\
+            }' android/app/build.gradle
+          echo "✅ Release build type injected."
+          else
+          echo "❌ Could not find buildTypes block in build.gradle."
+          exit 1
+          fi
 
 #      name: Setup Android keystore and insert Gradle signing block
 #      script: |
