@@ -794,37 +794,53 @@ definitions:
             echo "❌ Failed to write key.properties."
             exit 1
           fi
-          echo "✅ Injecting signingConfig to build.gradle..."
-          
-          # Insert signingConfigs.release
-          if grep -q "signingConfigs" android/app/build.gradle; then
-          sed -i.bak '/signingConfigs {/a\
-            release {\n\
-              storeFile file(\"keystore.jks\")\n\
-              storePassword project.findProperty(\"storePassword\")\n\
-              keyAlias project.findProperty(\"keyAlias\")\n\
-              keyPassword project.findProperty(\"keyPassword\")\n\
-            }' android/app/build.gradle
-          echo "✅ Signing config injected."
+        
+        echo "📦 Injecting dynamic signing configs..."
+  
+            GRADLE_FILE="android/app/build.gradle"
+            SIGNING_BLOCK=$(cat <<EOF
+            release {
+            storeFile file("keystore.jks")
+            storePassword project.findProperty("storePassword")
+            keyAlias project.findProperty("keyAlias")
+            keyPassword project.findProperty("keyPassword")
+            }
+            EOF
+            )
+            
+            BUILD_TYPE_BLOCK=$(cat <<EOF
+            release {
+            signingConfig signingConfigs.release
+            shrinkResources true
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            }
+            EOF
+            )
+            
+          # Inject into signingConfigs
+          if grep -q "signingConfigs" "$GRADLE_FILE"; then
+            awk -v block="$SIGNING_BLOCK" '
+            /signingConfigs[ \t]*{/ && !x { print; print block; x=1; next }1
+            ' "$GRADLE_FILE" > tmp && mv tmp "$GRADLE_FILE"
+            echo "✅ Signing config injected."
           else
-          echo "❌ Could not find signingConfigs block in build.gradle."
-          exit 1
+            echo "❌ signingConfigs block not found in build.gradle"
+            exit 1
           fi
           
-          # Insert buildTypes.release
-          if grep -q "buildTypes" android/app/build.gradle; then
-          sed -i.bak '/buildTypes {/a\
-            release {\n\
-              signingConfig signingConfigs.release\n\
-              shrinkResources true\n\
-              minifyEnabled true\n\
-              proguardFiles getDefaultProguardFile(\"proguard-android-optimize.txt\"), \"proguard-rules.pro\"\n\
-            }' android/app/build.gradle
-          echo "✅ Release build type injected."
+          # Inject into buildTypes
+          if grep -q "buildTypes" "$GRADLE_FILE"; then
+            awk -v block="$BUILD_TYPE_BLOCK" '
+            /buildTypes[ \t]*{/ && !x { print; print block; x=1; next }1
+            ' "$GRADLE_FILE" > tmp && mv tmp "$GRADLE_FILE"
+            echo "✅ Release build type injected."
           else
-          echo "❌ Could not find buildTypes block in build.gradle."
-          exit 1
+            echo "❌ buildTypes block not found in build.gradle"
+            exit 1
           fi
+
+
 
 #      name: Setup Android keystore and insert Gradle signing block
 #      script: |
