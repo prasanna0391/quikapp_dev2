@@ -1128,9 +1128,9 @@ definitions:
                     echo "Bundle ID: $BUNDLE_ID"
                     echo "✅ All required environment variables are present and valid."
 
-    - &manual_code_sign
-        name: 🔏 Manual code signing from base64
-        script: |
+    - &manual_code_sign2
+      name: 🔏 Manual code signing from base64
+      script: |
               echo "🔧 Starting manual code signing from base64..."
           
                         # Ensure BASE64_P12 and BASE64_PROVISIONING_PROFILE are not empty
