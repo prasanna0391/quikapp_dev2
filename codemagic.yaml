@@ -908,9 +908,9 @@ definitions:
         echo "📦 Setting up iOS Firebase Push Notifications..."
     
         #### ✅ Step 1: GoogleService-Info.plist
-        if [[ -n "$GOOGLE_SERVICE_INFO_PLIST_URL" ]]; then
+        if [[ -n "$firebase_config_ios" ]]; then
           echo "⬇️ Downloading GoogleService-Info.plist..."
-          curl -f -o ios/Runner/GoogleService-Info.plist "$GOOGLE_SERVICE_INFO_PLIST_URL"
+          curl -f -o ios/Runner/GoogleService-Info.plist "$firebase_config_ios"
           if [ $? -eq 0 ]; then
             echo "✅ GoogleService-Info.plist placed in ios/Runner"
           else
