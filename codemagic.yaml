@@ -939,7 +939,7 @@ definitions:
           </plist>
           EOF
         
-        echo "✅ ExportOptions.plist configured."
+          echo "✅ ExportOptions.plist configured."
 
 #    - &setup_ios_signing_manual
 #      name: Setup iOS code signing from .p12 and mobileprovision
