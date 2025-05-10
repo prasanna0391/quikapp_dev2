@@ -575,6 +575,10 @@ definitions:
     - &build_ipa
       name: Building iOS App with Feature Flags
       script: |
+        if [ ! -f ios_certificates/certificate.p12 ] || [ ! -f ios_certificates/profile.mobileprovision ]; then
+          echo "❌ Error: Certificates or provisioning profile missing."
+          exit 1
+        fi
         echo "✅ Building iOS IPA..."
         flutter build ipa \
           --release \
@@ -861,15 +865,15 @@ definitions:
         echo "⬇️ Downloading .p12 certificate..."
         curl -f -o ios_certificates/certificate.p12 "$CERT_URL"
         if [ $? -ne 0 ]; then
-        echo "❌ Failed to download .p12 certificate"
-        exit 1
+          echo "❌ Failed to download .p12 certificate"
+          exit 1
         fi
 
         echo "⬇️ Downloading provisioning profile..."
         curl -f -o ios_certificates/profile.mobileprovision "$PROFILE_URL"
         if [ $? -ne 0 ]; then
-        echo "❌ Failed to download provisioning profile"
-        exit 1
+          echo "❌ Failed to download provisioning profile"
+          exit 1
         fi
 
         echo "🔐 Importing certificate into keychain..."
@@ -882,9 +886,14 @@ definitions:
 
         echo "📱 Installing provisioning profile..."
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-        cp ios_certificates/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
 
-        echo "✅ iOS signing configured using manual certificates."
+        PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" ios_certificates/profile.mobileprovision)
+        PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" ios_certificates/profile.mobileprovision)
+
+        cp ios_certificates/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
+
+        echo "✅ iOS signing configured with profile '$PROFILE_NAME' and UUID $PROFILE_UUID."
+        echo "📝 Creating ExportOptions.plist..."
 
         echo "📝 Creating ExportOptions.plist..."
         cat > ExportOptions.plist <<EOF
