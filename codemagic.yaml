@@ -30,6 +30,7 @@ definitions:
         APNS_TEAM_ID: $APNS_TEAM_ID
         APNS_AUTH_KEY_URL: $APNS_AUTH_KEY_URL
         PKG_NAME: $PKG_NAME
+        BUNDLE_ID: $BUNDLE_ID
         EMAIL_ID: $EMAIL_ID
         PUSH_NOTIFY: $PUSH_NOTIFY
         IS_CAMERA: $IS_CAMERA
@@ -87,6 +88,7 @@ definitions:
         echo "VERSION_NAME: $VERSION_NAME"           
         echo "VERSION_CODE: $VERSION_CODE" 
         echo "PKG_NAME: $PKG_NAME"
+        echo "BUNDLE_ID: $BUNDLE_ID"
         
         echo "*********** App Customization Configuration ***********"
         echo "Splash screen: $IS_SPLASH"
@@ -106,7 +108,7 @@ definitions:
         
         echo "*********** IOS Keystore ***********"
         echo "APNS_KEY_ID: $APNS_KEY_ID"
-        echo "APNS_TEAM_ID: $APNS_TEAM_ID"
+        echo "TEAM_ID: $APNS_TEAM_ID"
         echo "APNS_AUTH_KEY_URL: $APNS_AUTH_KEY_URL"
         
         echo "*********** Firebase Android config file ***********"
@@ -620,7 +622,8 @@ definitions:
           --dart-define=KEY_STORE="$KEY_STORE" \
           --dart-define=CM_KEYSTORE_PASSWORD="$CM_KEYSTORE_PASSWORD" \
           --dart-define=CM_KEY_ALIAS="$CM_KEY_ALIAS" \
-          --dart-define=CM_KEY_PASSWORD="$CM_KEY_PASSWORD" > flutter_build2.log
+          --dart-define=CM_KEY_PASSWORD="$CM_KEY_PASSWORD" \
+          --export-options-plist=ExportOptions.plist > flutter_build_ios.log
           echo "✅ IPA build completed."
 
     - &build_apk
@@ -707,7 +710,7 @@ definitions:
             --dart-define=KEY_STORE="$KEY_STORE" \
             --dart-define=CM_KEYSTORE_PASSWORD="$CM_KEYSTORE_PASSWORD" \
             --dart-define=CM_KEY_ALIAS="$CM_KEY_ALIAS" \
-            --dart-define=CM_KEY_PASSWORD="$CM_KEY_PASSWORD" > flutter_build.log
+            --dart-define=CM_KEY_PASSWORD="$CM_KEY_PASSWORD" > flutter_build_apk.log
         if [ $? -ne 0 ]; then
         echo "❌ APK build failed"
         cat flutter_build.log
@@ -840,7 +843,103 @@ definitions:
             exit 1
           fi
 
+    - &setup_ios_signing_manual
+      name: Setup iOS code signing from .p12 and mobileprovision
+      script: |
+          echo "🔐 Setting up iOS signing (manual)..."
+      
+          mkdir -p ios_certificates
+      
+          echo "⬇️ Downloading .p12 certificate..."
+          curl -f -o ios_certificates/certificate.p12 "$CERT_URL"
+          if [ $? -ne 0 ]; then
+            echo "❌ Failed to download .p12 certificate"
+            exit 1
+          fi
+      
+          echo "⬇️ Downloading provisioning profile..."
+          curl -f -o ios_certificates/profile.mobileprovision "$PROFILE_URL"
+          if [ $? -ne 0 ]; then
+            echo "❌ Failed to download provisioning profile"
+            exit 1
+          fi
+      
+          echo "🔐 Importing certificate into keychain..."
+          security create-keychain -p "" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+          security import ios_certificates/certificate.p12 -k build.keychain -P "$CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+      
+          echo "📱 Installing provisioning profile..."
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          PROFILE_UUID=$(grep -a -o '<UUID>.*</UUID>' ios_certificates/profile.mobileprovision | sed -e 's/<\\/?UUID>//g' | tr -d '[:space:]')
+          PROFILE_NAME=$(grep -a -o '<Name>.*</Name>' ios_certificates/profile.mobileprovision | sed -e 's/<\\/?Name>//g' | tr -d '[:space:]')
+      
+          cp ios_certificates/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
+      
+          echo "📝 Creating ExportOptions.plist..."
+            cat > ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" \
+          "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+          <key>method</key>
+          <string>app-store</string>
+          <key>signingStyle</key>
+          <string>manual</string>
+          <key>provisioningProfiles</key>
+          <dict>
+          <key>$BUNDLE_ID</key>
+          <string>$PROFILE_NAME</string>
+          </dict>
+          <key>teamID</key>
+          <string>$APNS_TEAM_ID</string>
+          </dict>
+          </plist>
+          EOF
+          
+          echo "✅ iOS signing configured with profile '$PROFILE_NAME' and UUID $PROFILE_UUID."
 
+    - &Inject_iOS_Firebase_Push
+      name: Setup iOS Firebase push notifications and APNs key
+      script: |
+        echo "📦 Setting up iOS Firebase Push Notifications..."
+    
+        #### ✅ Step 1: GoogleService-Info.plist
+        if [[ -n "$GOOGLE_SERVICE_INFO_PLIST_URL" ]]; then
+          echo "⬇️ Downloading GoogleService-Info.plist..."
+          curl -f -o ios/Runner/GoogleService-Info.plist "$GOOGLE_SERVICE_INFO_PLIST_URL"
+          if [ $? -eq 0 ]; then
+            echo "✅ GoogleService-Info.plist placed in ios/Runner"
+          else
+            echo "❌ Failed to download GoogleService-Info.plist"
+            exit 1
+          fi
+        else
+          echo "⚠️ GOOGLE_SERVICE_INFO_PLIST_URL not set, skipping plist injection"
+        fi
+    
+        #### ✅ Step 2: APNs Auth Key (.p8)
+        if [[ -n "$APNS_AUTH_KEY_URL" && -n "$APNS_KEY_ID" && -n "$APNS_TEAM_ID" ]]; then
+          echo "⬇️ Downloading APNs Auth Key (.p8)..."
+          curl -f -o ios/AuthKey.p8 "$APNS_AUTH_KEY_URL"
+          if [ $? -eq 0 ]; then
+            echo "✅ APNs Auth Key downloaded to ios/AuthKey.p8"
+          else
+            echo "❌ Failed to download APNs key"
+            exit 1
+          fi
+    
+          # Store for use in FCM or backend integrations
+          echo "📝 APNs Setup:"
+          echo "  🔑 Key ID: $APNS_KEY_ID"
+          echo "  🧑‍💻 Team ID: $APNS_TEAM_ID"
+          echo "  📦 File: ios/AuthKey.p8"
+        else
+          echo "⚠️ Missing APNs credentials, skipping .p8 key setup"
+        fi
 
 #      name: Setup Android keystore and insert Gradle signing block
 #      script: |
@@ -883,7 +982,7 @@ workflows:
     artifacts:
       - *android_apk
       - *android_abb
-      - flutter_build.log
+      - flutter_build_apk.log
       - flutter_build_aab.log
       - fcm_token.txt
     #        - *android_abb
@@ -899,27 +998,27 @@ workflows:
       - *change_proj_name
       - *debug_env
       - *change_app_name
-      - *Inject_Firebase_iOS_Push
+      - *Inject_iOS_Firebase_Push
       - *update_package_names
       - *Update_App_Version
       - *get_logo
       - *set_launcher_icons
       - *get_splash
       - *Update_SDK_Version
+      - *setup_ios_signing_manual
 
-      # Download signing files from secure URLs
-      - name: Download signing files
-        script: |
-          mkdir -p signing
-          wget -O signing/ios_certificate.p12 "$CERTIFICATE_URL"
-          wget -O signing/ios_profile.mobileprovision "$PROFILE_URL"
+#      # Download signing files from secure URLs
+#      - name: Download signing files
+#        script: |
+#          mkdir -p signing
+#          wget -O signing/ios_certificate.p12 "$CERTIFICATE_URL"
+#          wget -O signing/ios_profile.mobileprovision "$PROFILE_URL"
 
       - *build_ipa
 
     artifacts:
       - *ios_app
-      - flutter_build.log
-      - flutter_build2.log
+      - flutter_build_ios.log
       - fcm_token.txt
 
     code_signing:
