@@ -898,19 +898,11 @@ definitions:
         echo "📱 Installing provisioning profile..."
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
 
-        PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" ios_certificates/profile.mobileprovision 2>/dev/null || echo "")
-        PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" ios_certificates/profile.mobileprovision 2>/dev/null || echo "")
-
-        if [ -z "$PROFILE_UUID" ] || [ -z "$PROFILE_NAME" ]; then
-          echo "❌ Error: Invalid provisioning profile."
-          exit 1
-        fi
-
-        cp ios_certificates/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
-        echo "✅ Provisioning profile installed: $PROFILE_NAME ($PROFILE_UUID)"
+        cp ios_certificates/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+        echo "✅ Provisioning profile installed."
 
         echo "🔎 Verifying provisioning profile in Xcode..."
-        if ! security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision > /dev/null 2>&1; then
+        if ! security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision > /dev/null 2>&1; then
           echo "❌ Provisioning profile verification failed in Xcode."
           exit 1
         fi
