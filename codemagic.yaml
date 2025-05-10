@@ -579,6 +579,12 @@ definitions:
           echo "❌ Error: Certificates or provisioning profile missing."
           exit 1
         fi
+        
+        echo "🔑 Setting up certificates and provisioning profile..."
+        security import ios_certificates/certificate.p12 -P "$CERT_PASSWORD" -A
+        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+        cp ios_certificates/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+        
         echo "✅ Building iOS IPA..."
         flutter build ipa \
           --release \
