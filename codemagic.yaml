@@ -863,14 +863,14 @@ definitions:
         mkdir -p ios_certificates
 
         echo "⬇️ Downloading .p12 certificate..."
-        wget -O ios_certificates/certificate.p12 "$CERT_URL"
+        curl -f -o ios_certificates/certificate.p12 "$CERT_URL"
         if [ $? -ne 0 ]; then
           echo "❌ Failed to download .p12 certificate"
           exit 1
         fi
 
         echo "⬇️ Downloading provisioning profile..."
-        wget -O ios_certificates/profile.mobileprovision "$PROFILE_URL"
+        curl -f -o ios_certificates/profile.mobileprovision "$PROFILE_URL"
         if [ $? -ne 0 ]; then
           echo "❌ Failed to download provisioning profile"
           exit 1
@@ -883,6 +883,13 @@ definitions:
         security list-keychains -s build.keychain
         security default-keychain -s build.keychain
         security unlock-keychain -p "" build.keychain
+
+        echo "🔎 Verifying certificate in keychain..."
+        if ! security find-identity -p codesigning -v | grep -q "build.keychain"; then
+          echo "❌ Certificate is not trusted for code signing."
+          exit 1
+        fi
+        echo "✅ Certificate verified in keychain."
 
         echo "📱 Installing provisioning profile..."
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
@@ -899,12 +906,12 @@ definitions:
         echo "✅ Provisioning profile installed: $PROFILE_NAME ($PROFILE_UUID)"
 
         echo "🔎 Verifying provisioning profile in Xcode..."
-        if ! security cms -D -i ios_certificates/profile.mobileprovision > /dev/null 2>&1; then
+        if ! security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision > /dev/null 2>&1; then
           echo "❌ Provisioning profile verification failed in Xcode."
           exit 1
         fi
 
-        echo "✅ iOS signing configured with profile '$PROFILE_NAME' and UUID $PROFILE_UUID."
+        echo "✅ Provisioning profile verified in Xcode."
 
         echo "📝 Creating ExportOptions.plist..."
         cat > ExportOptions.plist <<EOF
