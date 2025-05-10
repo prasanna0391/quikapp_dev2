@@ -910,22 +910,27 @@ definitions:
       name: Setup iOS Firebase push notifications and APNs key
       script: |
         echo "📦 Setting up iOS Firebase Push Notifications..."
-    
-        #### ✅ Step 1: GoogleService-Info.plist
+
         if [[ -n "$firebase_config_ios" ]]; then
-          echo "⬇️ Downloading GoogleService-Info.plist..."
-          curl -f -o ios/Runner/GoogleService-Info.plist "$firebase_config_ios"
-          if [ $? -eq 0 ]; then
-            echo "✅ GoogleService-Info.plist placed in ios/Runner"
+          echo "🔗 Firebase Config URL: $firebase_config_ios"
+
+          if [[ "$firebase_config_ios" =~ ^https:// ]]; then
+            echo "⬇️ Downloading GoogleService-Info.plist..."
+            curl -f -o ios/Runner/GoogleService-Info.plist "$firebase_config_ios"
+            if [ $? -eq 0 ]; then
+              echo "✅ GoogleService-Info.plist placed in ios/Runner"
+            else
+              echo "❌ Failed to download GoogleService-Info.plist"
+              exit 1
+            fi
           else
-            echo "❌ Failed to download GoogleService-Info.plist"
+            echo "❌ Error: Invalid URL format for firebase_config_ios"
             exit 1
           fi
         else
           echo "⚠️ GOOGLE_SERVICE_INFO_PLIST_URL not set, skipping plist injection"
         fi
-    
-        #### ✅ Step 2: APNs Auth Key (.p8)
+
         if [[ -n "$APNS_AUTH_KEY_URL" && -n "$APNS_KEY_ID" && -n "$APPLE_TEAM_ID" ]]; then
           echo "⬇️ Downloading APNs Auth Key (.p8)..."
           curl -f -o ios/AuthKey.p8 "$APNS_AUTH_KEY_URL"
@@ -935,8 +940,7 @@ definitions:
             echo "❌ Failed to download APNs key"
             exit 1
           fi
-    
-          # Store for use in FCM or backend integrations
+
           echo "📝 APNs Setup:"
           echo "  🔑 Key ID: $APNS_KEY_ID"
           echo "  🧑‍💻 Team ID: $APPLE_TEAM_ID"
