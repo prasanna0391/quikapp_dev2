@@ -850,39 +850,38 @@ definitions:
     - &setup_ios_signing_manual
       name: Setup iOS code signing from .p12 and mobileprovision
       script: |
-        echo "🔐 Setting up iOS signing (manual)..."
+          echo "🔐 Setting up iOS signing (manual)..."
 
-        mkdir -p ios_certificates
-
-        echo "⬇️ Downloading .p12 certificate..."
-        curl -f -o ios_certificates/certificate.p12 "$CERT_URL"
-        if [ $? -ne 0 ]; then
+          mkdir -p ios_certificates
+      
+          echo "⬇️ Downloading .p12 certificate..."
+          curl -f -o ios_certificates/certificate.p12 "$CERT_URL"
+          if [ $? -ne 0 ]; then
           echo "❌ Failed to download .p12 certificate"
           exit 1
-        fi
-
-        echo "⬇️ Downloading provisioning profile..."
-        curl -f -o ios_certificates/profile.mobileprovision "$PROFILE_URL"
-        if [ $? -ne 0 ]; then
+          fi
+      
+          echo "⬇️ Downloading provisioning profile..."
+          curl -f -o ios_certificates/profile.mobileprovision "$PROFILE_URL"
+          if [ $? -ne 0 ]; then
           echo "❌ Failed to download provisioning profile"
           exit 1
-        fi
-
-        echo "🔐 Importing certificate into keychain..."
-        security create-keychain -p "" build.keychain
-        security default-keychain -s build.keychain
-        security unlock-keychain -p "" build.keychain
-        security import ios_certificates/certificate.p12 -k build.keychain -P "$CERT_PASSWORD" -T /usr/bin/codesign
-        security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
-
-        echo "📱 Installing provisioning profile..."
-        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-        cp ios_certificates/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
-
-        echo "✅ iOS signing configured using manual certificates."
-    - &Inject_Export_plist
-      name: Export Plist
-      script: |
+          fi
+      
+          echo "🔐 Importing certificate into keychain..."
+          security create-keychain -p "" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+          security import ios_certificates/certificate.p12 -k build.keychain -P "$CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+      
+          echo "📱 Installing provisioning profile..."
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          PROFILE_UUID=$(grep -a -o '<UUID>.*</UUID>' ios_certificates/profile.mobileprovision | sed -e 's/<\\/?UUID>//g' | tr -d '[:space:]')
+          PROFILE_NAME=$(grep -a -o '<Name>.*</Name>' ios_certificates/profile.mobileprovision | sed -e 's/<\\/?Name>//g' | tr -d '[:space:]')
+      
+          cp ios_certificates/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
+      
           echo "📝 Creating ExportOptions.plist..."
           cat > ExportOptions.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
@@ -1011,7 +1010,6 @@ workflows:
       - *get_splash
       - *Update_SDK_Version
       - *setup_ios_signing_manual
-      - *Inject_Export_plist
 
 #      # Download signing files from secure URLs
 #      - name: Download signing files
@@ -1027,14 +1025,14 @@ workflows:
       - flutter_build_ios.log
       - fcm_token.txt
 
-    code_signing:
-      ios_signing:
-        certificates:
-          - certificate_path: signing/ios_certificate.p12
-            certificate_password: $CERTIFICATE_PASSWORD
-        provisioning_profiles:
-          - bundle_identifier: $PKG_NAME
-            path: signing/ios_profile.mobileprovision
+#    code_signing:
+#      ios_signing:
+#        certificates:
+#          - certificate_path: signing/ios_certificate.p12
+#            certificate_password: $CERTIFICATE_PASSWORD
+#        provisioning_profiles:
+#          - bundle_identifier: $PKG_NAME
+#            path: signing/ios_profile.mobileprovision
 
     publishing: *email_release
   ios-and-android-workflow:
