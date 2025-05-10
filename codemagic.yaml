@@ -886,14 +886,13 @@ definitions:
 
         echo "✅ Certificate imported."
 
-        echo "🔧 Marking certificate as trusted for code signing..."
-        CERT_IDENTITY=$(security find-identity -p codesigning -v | grep "build.keychain" | head -n 1 | awk '{print $2}')
-        if [ -z "$CERT_IDENTITY" ]; then
-          echo "❌ Certificate not found in keychain."
+        echo "🔧 Verifying certificate in keychain..."
+        security find-identity -p codesigning -s build.keychain -v
+        if ! security find-identity -p codesigning -s build.keychain | grep -q ""; then
+          echo "❌ No valid code signing identity found in build.keychain."
           exit 1
         fi
 
-        security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
         echo "✅ Certificate is trusted for code signing."
 
         echo "📱 Installing provisioning profile..."
