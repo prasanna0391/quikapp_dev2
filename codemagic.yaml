@@ -863,14 +863,14 @@ definitions:
         mkdir -p ios_certificates
 
         echo "⬇️ Downloading .p12 certificate..."
-        curl -f -o ios_certificates/certificate.p12 "$CERT_URL"
+        wget -O ios_certificates/certificate.p12 "$CERT_URL"
         if [ $? -ne 0 ]; then
           echo "❌ Failed to download .p12 certificate"
           exit 1
         fi
 
         echo "⬇️ Downloading provisioning profile..."
-        curl -f -o ios_certificates/profile.mobileprovision "$PROFILE_URL"
+        wget -O ios_certificates/profile.mobileprovision "$PROFILE_URL"
         if [ $? -ne 0 ]; then
           echo "❌ Failed to download provisioning profile"
           exit 1
@@ -879,21 +879,25 @@ definitions:
         echo "🔐 Importing certificate into keychain..."
         security create-keychain -p "" build.keychain
         security import ios_certificates/certificate.p12 -k build.keychain -P "$CERT_PASSWORD" -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
         security list-keychains -s build.keychain
         security default-keychain -s build.keychain
         security unlock-keychain -p "" build.keychain
-        security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
 
         echo "📱 Installing provisioning profile..."
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
 
-        PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" ios_certificates/profile.mobileprovision)
-        PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" ios_certificates/profile.mobileprovision)
+        PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" ios_certificates/profile.mobileprovision 2>/dev/null || echo "")
+        PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" ios_certificates/profile.mobileprovision 2>/dev/null || echo "")
+
+        if [ -z "$PROFILE_UUID" ] || [ -z "$PROFILE_NAME" ]; then
+          echo "❌ Error: Invalid provisioning profile."
+          exit 1
+        fi
 
         cp ios_certificates/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
 
         echo "✅ iOS signing configured with profile '$PROFILE_NAME' and UUID $PROFILE_UUID."
-        echo "📝 Creating ExportOptions.plist..."
 
         echo "📝 Creating ExportOptions.plist..."
         cat > ExportOptions.plist <<EOF
@@ -911,7 +915,7 @@ definitions:
         <string>$PROFILE_NAME</string>
         </dict>
         <key>teamID</key>
-        <string>$APPLE_TEAM_ID</string>
+        <string>****</string>
         </dict>
         </plist>
         EOF
