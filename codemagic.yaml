@@ -893,10 +893,7 @@ definitions:
       
           echo "🔧 Verifying certificate in keychain..."
           security find-identity -p codesigning -s build.keychain -v
-#          if ! security find-identity -p codesigning -s build.keychain | grep -q "Apple"; then
-#            echo "❌ No valid code signing identity found in build.keychain."
-#            exit 1
-#          fi
+
           VALID_IDENTITY_COUNT=$(security find-identity -p codesigning -s build.keychain | grep -cE 'iPhone (Developer|Distribution):')
                 
           if [ "$VALID_IDENTITY_COUNT" -lt 1 ]; then
