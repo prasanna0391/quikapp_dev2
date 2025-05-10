@@ -916,7 +916,7 @@ definitions:
 
           if [[ "$firebase_config_ios" =~ ^https:// ]]; then
             echo "⬇️ Downloading GoogleService-Info.plist..."
-            curl -f -o ios/Runner/GoogleService-Info.plist "$firebase_config_ios"
+            wget -O ios/Runner/GoogleService-Info.plist "$firebase_config_ios"
             if [ $? -eq 0 ]; then
               echo "✅ GoogleService-Info.plist placed in ios/Runner"
             else
@@ -933,7 +933,7 @@ definitions:
 
         if [[ -n "$APNS_AUTH_KEY_URL" && -n "$APNS_KEY_ID" && -n "$APPLE_TEAM_ID" ]]; then
           echo "⬇️ Downloading APNs Auth Key (.p8)..."
-          curl -f -o ios/AuthKey.p8 "$APNS_AUTH_KEY_URL"
+          wget -O ios/AuthKey.p8 "$APNS_AUTH_KEY_URL"
           if [ $? -eq 0 ]; then
             echo "✅ APNs Auth Key downloaded to ios/AuthKey.p8"
           else
