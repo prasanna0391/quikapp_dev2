@@ -931,7 +931,7 @@ definitions:
         <string>$PROFILE_NAME</string>
         </dict>
         <key>teamID</key>
-        <string>****</string>
+        <string>$PKG_NAME</string>
         </dict>
         </plist>
         EOF
