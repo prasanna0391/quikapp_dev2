@@ -1,23 +1,12 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:quickappproj/config/env_config.dart';
 import 'package:quickappproj/module/myapp.dart';
 import 'package:quickappproj/utils/menu_parser.dart';
-
-
-
-
+import 'dart:convert'; // Add this import
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Define dummy test values for environment-based config
+    // Dummy test data
     const testWebUrl = "https://example.com";
     const testIsBottomMenu = true;
     const testIsSplashEnabled = false;
@@ -25,40 +14,51 @@ void main() {
     const testSplashBgUrl = "";
     const testSplashDuration = 3;
     const testSplashAnimation = "zoom";
-    final testBottomMenuItems = [
+    const testSplashTaglineColor = Colors.black;
+    const testSplashBgColor = Colors.white;
+    const testBottomMenuBgColor = Colors.white;
+    const testBottomMenuActiveTabColor = Colors.blue;
+    const testBottomMenuTextColor = Colors.black;
+    const testBottomMenuIconColor = Colors.black;
+    const testBottomMenuIconPosition = "above";
+    const testIsDeepLink = true;
+    const testIsLoadIndicator = true;
+    final testBottomMenuItems = parseBottomMenuItems(jsonEncode([
       {"icon": "home", "label": "Home", "url": "https://example.com/home"},
-    ];
+    ]));
 
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp(
-      webUrl: webUrl,
+    // Build the widget
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MyApp(
+          webUrl: testWebUrl,
+          isSplash: testIsSplashEnabled,
+          splashLogo: testSplashUrl,
+          splashBg: testSplashBgUrl,
+          splashDuration: testSplashDuration,
+          splashAnimation: testSplashAnimation,
+          taglineColor: testSplashTaglineColor,
+          spbgColor: testSplashBgColor,
+          isBottomMenu: testIsBottomMenu,
+          bottomMenuItems: testBottomMenuItems,
+          isDeeplink: testIsDeepLink,
+          backgroundColor: testBottomMenuBgColor,
+          activeTabColor: testBottomMenuActiveTabColor,
+          textColor: testBottomMenuTextColor,
+          iconColor: testBottomMenuIconColor,
+          iconPosition: testBottomMenuIconPosition,
+          isLoadIndicator: testIsLoadIndicator,
+        ),
+      ),
+    );
 
-      isSplash: isSplashEnabled,
-      splashLogo: splashUrl,
-      splashBg: splashBgUrl,
-      splashDuration: splashDuration,
-      splashAnimation: splashAnimation,
-      taglineColor: splashTaglineColor,
-      spbgColor: splashBgColor,
-      isBottomMenu: isBottomMenu,
-      bottomMenuItems: parseBottomMenuItems(bottomMenuRaw),
-      isDeeplink: isDeepLink,
-      backgroundColor: bottomMenuBgColor,
-      activeTabColor: bottomMenuActiveTabColor,
-      textColor: bottomMenuTextColor,
-      iconColor: bottomMenuIconColor,
-      iconPosition: bottomMenuIconPosition,
-    ));
-
-    // Verify that our counter starts at 0.
+    // Assuming your app has a '+' icon and counter logic for testing
     expect(find.text('0'), findsOneWidget);
     expect(find.text('1'), findsNothing);
 
-    // Tap the '+' icon and trigger a frame.
     await tester.tap(find.byIcon(Icons.add));
     await tester.pump();
 
-    // Verify that our counter has incremented.
     expect(find.text('0'), findsNothing);
     expect(find.text('1'), findsOneWidget);
   });
