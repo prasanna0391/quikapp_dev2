@@ -27,7 +27,7 @@ definitions:
         firebase_config_android: $firebase_config_android
         firebase_config_ios: $firebase_config_ios
         APNS_KEY_ID: $APNS_KEY_ID
-        APNS_TEAM_ID: $APNS_TEAM_ID
+        APPLE_TEAM_ID: $APPLE_TEAM_ID
         APNS_AUTH_KEY_URL: $APNS_AUTH_KEY_URL
         PKG_NAME: $PKG_NAME
         BUNDLE_ID: $BUNDLE_ID
@@ -108,7 +108,7 @@ definitions:
         
         echo "*********** IOS Keystore ***********"
         echo "APNS_KEY_ID: $APNS_KEY_ID"
-        echo "TEAM_ID: $APNS_TEAM_ID"
+        echo "TEAM_ID: $APPLE_TEAM_ID"
         echo "APNS_AUTH_KEY_URL: $APNS_AUTH_KEY_URL"
         
         echo "*********** Firebase Android config file ***********"
@@ -404,28 +404,28 @@ definitions:
       name: Get JSON file
       script: |
        
-        if [ "$PUSH_NOTIFY" = "true" ]; then
-        echo "📥 Downloading google-services.json..."
-      
-        # Ensure target directories exist
-        mkdir -p android/app
-        mkdir -p assets
-      
-        # Try downloading with SSL verification first
-        wget --spider --quiet "$firebase_config_android"
-        if [ $? -ne 0 ]; then
-        echo "⚠️ SSL verification failed. Retrying with --no-check-certificate..."
-        WGET_OPTS="--no-check-certificate"
-        else
-        WGET_OPTS=""
-        fi
-      
-        # Download the file(s) using determined option
-        wget $WGET_OPTS -O android/app/google-services.json "$firebase_config_android"
-        wget $WGET_OPTS -O assets/google-services.json "$firebase_config_android"
-        else
-        echo "🚫 Firebase config skipped (PUSH_NOTIFY is not true)"
-        fi
+          if [ "$PUSH_NOTIFY" = "true" ]; then
+          echo "📥 Downloading google-services.json..."
+        
+          # Ensure target directories exist
+          mkdir -p android/app
+          mkdir -p assets
+        
+          # Try downloading with SSL verification first
+          wget --spider --quiet "$firebase_config_android"
+          if [ $? -ne 0 ]; then
+          echo "⚠️ SSL verification failed. Retrying with --no-check-certificate..."
+          WGET_OPTS="--no-check-certificate"
+          else
+          WGET_OPTS=""
+          fi
+        
+          # Download the file(s) using determined option
+          wget $WGET_OPTS -O android/app/google-services.json "$firebase_config_android"
+          wget $WGET_OPTS -O assets/google-services.json "$firebase_config_android"
+          else
+          echo "🚫 Firebase config skipped (PUSH_NOTIFY is not true)"
+          fi
 
 
 
@@ -565,7 +565,7 @@ definitions:
                IOS_PROJECT_PATH="ios/Runner.xcodeproj/project.pbxproj"
         
                if [ -f "$IOS_PROJECT_PATH" ]; then
-                 sed -i "s/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = $PKG_NAME;/g" "$IOS_PROJECT_PATH"
+                 sed -i "s/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;/g" "$IOS_PROJECT_PATH"
                  echo "✅ iOS bundle identifier updated."
                else
                  echo "❌ iOS project file not found at $IOS_PROJECT_PATH"
@@ -614,17 +614,21 @@ definitions:
           --dart-define=IS_CALENDAR="$IS_CALENDAR" \
           --dart-define=IS_NOTIFICATION="$IS_NOTIFICATION" \
           --dart-define=IS_STORAGE="$IS_STORAGE" \
-          --dart-define=firebase_config_android="$firebase_config_android" \
-          --dart-define=firebase_config_ios="$firebase_config_ios" \
           --dart-define=APNS_KEY_ID="$APNS_KEY_ID" \
-          --dart-define=APNS_TEAM_ID="$APNS_TEAM_ID" \
+          --dart-define=APPLE_TEAM_ID="$APPLE_TEAM_ID" \
           --dart-define=APNS_AUTH_KEY_URL="$APNS_AUTH_KEY_URL" \
           --dart-define=KEY_STORE="$KEY_STORE" \
           --dart-define=CM_KEYSTORE_PASSWORD="$CM_KEYSTORE_PASSWORD" \
           --dart-define=CM_KEY_ALIAS="$CM_KEY_ALIAS" \
           --dart-define=CM_KEY_PASSWORD="$CM_KEY_PASSWORD" \
           --export-options-plist=ExportOptions.plist > flutter_build_ios.log
-          echo "✅ IPA build completed."
+          if [ $? -ne 0 ]; then
+            echo "❌ IPA build failed"
+            cat flutter_build_ios.log
+            exit 1
+          fi
+      
+          echo "✅ IPA build completed successfully"
 
     - &build_apk
       name: Building Apk with Feature Flags
@@ -705,7 +709,7 @@ definitions:
             --dart-define=firebase_config_android="$firebase_config_android" \
             --dart-define=firebase_config_ios="$firebase_config_ios" \
             --dart-define=APNS_KEY_ID="$APNS_KEY_ID" \
-            --dart-define=APNS_TEAM_ID="$APNS_TEAM_ID" \
+            --dart-define=APPLE_TEAM_ID="$APPLE_TEAM_ID" \
             --dart-define=APNS_AUTH_KEY_URL="$APNS_AUTH_KEY_URL" \
             --dart-define=KEY_STORE="$KEY_STORE" \
             --dart-define=CM_KEYSTORE_PASSWORD="$CM_KEYSTORE_PASSWORD" \
@@ -759,7 +763,7 @@ definitions:
             --dart-define=firebase_config_android="$firebase_config_android" \
             --dart-define=firebase_config_ios="$firebase_config_ios" \
             --dart-define=APNS_KEY_ID="$APNS_KEY_ID" \
-            --dart-define=APNS_TEAM_ID="$APNS_TEAM_ID" \
+            --dart-define=APPLE_TEAM_ID="$APPLE_TEAM_ID" \
             --dart-define=APNS_AUTH_KEY_URL="$APNS_AUTH_KEY_URL" \
             --dart-define=KEY_STORE="$KEY_STORE" \
             --dart-define=CM_KEYSTORE_PASSWORD="$CM_KEYSTORE_PASSWORD" \
@@ -847,21 +851,21 @@ definitions:
       name: Setup iOS code signing from .p12 and mobileprovision
       script: |
           echo "🔐 Setting up iOS signing (manual)..."
-      
+
           mkdir -p ios_certificates
       
           echo "⬇️ Downloading .p12 certificate..."
           curl -f -o ios_certificates/certificate.p12 "$CERT_URL"
           if [ $? -ne 0 ]; then
-            echo "❌ Failed to download .p12 certificate"
-            exit 1
+          echo "❌ Failed to download .p12 certificate"
+          exit 1
           fi
       
           echo "⬇️ Downloading provisioning profile..."
           curl -f -o ios_certificates/profile.mobileprovision "$PROFILE_URL"
           if [ $? -ne 0 ]; then
-            echo "❌ Failed to download provisioning profile"
-            exit 1
+          echo "❌ Failed to download provisioning profile"
+          exit 1
           fi
       
           echo "🔐 Importing certificate into keychain..."
@@ -879,23 +883,23 @@ definitions:
           cp ios_certificates/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
       
           echo "📝 Creating ExportOptions.plist..."
-            cat > ExportOptions.plist <<EOF
+          cat > ExportOptions.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" \
           "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
-          <key>method</key>
-          <string>app-store</string>
-          <key>signingStyle</key>
-          <string>manual</string>
-          <key>provisioningProfiles</key>
-          <dict>
-          <key>$BUNDLE_ID</key>
-          <string>$PROFILE_NAME</string>
-          </dict>
-          <key>teamID</key>
-          <string>$APNS_TEAM_ID</string>
+            <key>method</key>
+            <string>app-store</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>$BUNDLE_ID</key>
+              <string>$PROFILE_NAME</string>
+            </dict>
+            <key>teamID</key>
+            <string>$APPLE_TEAM_ID</string>
           </dict>
           </plist>
           EOF
@@ -922,7 +926,7 @@ definitions:
         fi
     
         #### ✅ Step 2: APNs Auth Key (.p8)
-        if [[ -n "$APNS_AUTH_KEY_URL" && -n "$APNS_KEY_ID" && -n "$APNS_TEAM_ID" ]]; then
+        if [[ -n "$APNS_AUTH_KEY_URL" && -n "$APNS_KEY_ID" && -n "$APPLE_TEAM_ID" ]]; then
           echo "⬇️ Downloading APNs Auth Key (.p8)..."
           curl -f -o ios/AuthKey.p8 "$APNS_AUTH_KEY_URL"
           if [ $? -eq 0 ]; then
@@ -935,7 +939,7 @@ definitions:
           # Store for use in FCM or backend integrations
           echo "📝 APNs Setup:"
           echo "  🔑 Key ID: $APNS_KEY_ID"
-          echo "  🧑‍💻 Team ID: $APNS_TEAM_ID"
+          echo "  🧑‍💻 Team ID: $APPLE_TEAM_ID"
           echo "  📦 File: ios/AuthKey.p8"
         else
           echo "⚠️ Missing APNs credentials, skipping .p8 key setup"
